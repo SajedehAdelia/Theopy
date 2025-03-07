@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice to Text</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        #text {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 50px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Speak and See the Text</h1>
+    <button onclick="startListening()">Start Listening</button>
+    <p id="text">Your speech will appear here...</p>
+
+    <script>
+        function startListening() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.interimResults = true;
+
+            recognition.onresult = (event) => {
+                const transcript = Array.from(event.results)
+                    .map(result => result[0].transcript)
+                    .join('');
+                document.getElementById('text').textContent = transcript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error", event);
+            };
+
+            recognition.start();
+        }
+    </script>
+</body>
+</html>
