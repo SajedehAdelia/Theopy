@@ -3,6 +3,10 @@ import speech_recognition as sr
 r = sr.Recognizer()
 
 
+print("Available microphones:")
+for index, name in enumerate(sr.Microphone.list_microphone_names()):
+    print(f"{index}: {name}")
+
 def record_text():
     for index, name in enumerate(sr.Microphone.list_microphone_names()):
         print(f"Microphone {index}: {name}")
