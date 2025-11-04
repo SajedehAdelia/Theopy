@@ -1,90 +1,197 @@
-# Project brief — Theopy Assistant
+# 🧾 Cahier des Charges — Theopy
 
+**Project Period:** 2025–2026
+**Author:** Louis XIV (Adelia Fathipoursasansara)
+**Organisation:** Kozea
+**Certificate Reference:** RNCP39583 – *Expert en développement logiciel*
 
-## Vision
-A voice-first server-side AI assistant that wraps Teepy (and future apps) so users can control the application and complete tasks by speaking naturally. No front-end besides voice input/output; the assistant acts as a middleware that maps natural language to safe API actions.
+---
 
+## 1. Project Overview
 
-## Objectives (high level)
-- Provide an assistant that can interpret user requests and perform actions in Teepy via its API.
-- Achieve an MVP where core flows (create client, list appointments, modify records) work reliably.
-- Ensure the assistant is modular so it can be re-used with other apps in future.
+**Project Name:** Theopy
+**Purpose:** To design and implement an **AI assistant MVP server** that enables **Teepy users to interact with Teepy naturally — by voice or by text**.
 
+Theopy allows users to **speak or type commands** to control Teepy, receive information, perform actions, and get spoken or written feedback — all in a fluid, conversational way.
 
-## Success criteria (MVP)
-- End-to-end flow works: user says a command → STT → assistant extracts intent → server calls Teepy API → assistant confirms action via TTS or text.
-- Average response time (STT→Action→TTS) < 3 seconds for common actions (target). Practical target: < 5 seconds.
-- Error handling: assistant asks clarifying questions for incomplete commands and logs all actions.
-- Basic tests and CI in place; `docs/` contains design and acceptance criteria.
+This assistant simplifies daily work on Teepy for people who prefer to communicate rather than navigate menus or forms. It supports both **voice** and **text** input modes.
 
+---
 
-## In-scope (MVP)
-- Server-side assistant service (REST/WebSocket) that accepts audio / text and returns audio / text replies.
-- Core intent extraction and command routing to Teepy API.
-- Authentication between assistant and Teepy (API token / service account).
-- Basic logging and audit trail for actions taken.
+## 2. Context
 
+Kozea’s **Teepy** application is a collaborative communication and management tool used by professionals such as healthcare workers, assistants, and teams to manage their everyday tasks, appointments, and exchanges with clients and colleagues.
 
-## Out-of-scope (initial)
-- GUI or browser extension.
-- Full multi-language support (start with English; add support later).
-- Advanced personalisation & user profiles beyond basic mapping.
+However, some users find manual navigation and data entry repetitive, especially when switching between multiple interfaces or devices.
 
+To improve comfort, efficiency, and accessibility, Kozea is developing **Theopy**, a **Python-based AI assistant** that connects directly to Teepy and allows users to **speak or type naturally** to perform their daily actions.
 
-## Non-functional requirements
-- **Security:** store API credentials encrypted, use HTTPS for all communications.
-- **Performance:** median intent parsing < 300ms (LLM network latency excluded).
-- **Availability:** MVP hosted with a reasonable SLA (e.g., 99% uptime during work hours).
-- **Privacy:** do not store audio longer than needed; log textual commands and actions with retention policy.
+Theopy fits within Kozea’s broader innovation strategy: bringing **AI and voice technologies** into real-world professional tools to make them more intuitive and human.
 
+---
 
-## Assumptions
-- Teepy exposes a stable API that can be called from the assistant server.
-- You have permission to use required LLM / STT / TTS services (OpenAI keys, etc.).
-- You can host the server (a small cloud VM is sufficient for MVP).
+## 3. Objectives
 
+1. **Develop an AI assistant server** that listens to users’ voice or reads their text commands.
+2. **Translate those commands into Teepy actions**, such as checking schedules, sending messages, or reading notifications.
+3. **Provide two communication modes:**
 
-## Risks & Mitigations
-- **Risk:** Dependency on paid APIs (cost). **Mitigation:** Measure usage, use local models for dev, set quotas.
-- **Risk:** Latency and UX degradation. **Mitigation:** Cache frequent responses, use streaming where possible.
-- **Risk:** Security / data leakage. **Mitigation:** Encrypt secrets, limit data retention, implement auth and scopes.
+   * **Voice**: the user speaks, Theopy answers by voice.
+   * **Text**: the user writes, Theopy replies in chat.
+4. **Integrate natural language understanding (NLU)** to interpret user intent in French.
+5. **Ensure smooth integration with Teepy’s existing backend** via secure internal APIs.
+6. **Prioritise data privacy and reliability**, offering the possibility to run locally or hybrid.
 
+---
 
-## Metrics / KPIs
-- Commands successfully executed (%) — target: 70%+ for MVP.
-- Mean time to execute command (seconds).
-- Number of clarification loops per session.
-- Cost per 1,000 commands (estimate for budget tracking).
+## 4. Target Users
 
+* **Teepy end users:** professionals (especially in healthcare, communication, and insurance worker roles) who use Teepy daily.
+* **Kozea’s client organisations:** Pharmacies and offices where staff members want faster, easier access to Teepy features.
+* **Accessibility users:** individuals who may prefer or need voice interaction for comfort or inclusivity.
 
-## Tech stack (suggested)
-- **Language:** Python (FastAPI) or Node.js (Express). FastAPI recommended for quick iteration.
-- **STT:** Whisper (local) or OpenAI Whisper API.
-- **LLM:** OpenAI (function calling / tool use) or a local LLM during dev.
-- **TTS:** Coqui TTS / cloud TTS for higher quality.
-- **Orchestration:** LangChain (optional) for tool-calling patterns.
-- **Infra:** small cloud VM (DigitalOcean / AWS / GCP), Docker, GitHub Actions for CI.
+---
 
+## 5. Functional Specifications
 
-## Timeline for Sprint 1 (Weeks 1–2)
-- **Week 1 (Days 1–5):** Draft stakeholder map, requirements doc, set up repo and project board.
-- **Week 2 (Days 6–10):** Review & adjust docs, prepare acceptance criteria for MVP, create initial backlog tickets.
+### 5.1 Communication Modes
 
+| Mode           |  Description                   ----------------------------------------------------------------------------------------------------------------------- 
+| **Voice Mode** | Users talk naturally to Theopy. It listens, interprets, executes the corresponding Teepy action, and responds 
+                   by  voice.           
+-----------------------------------------------------------------------------------------------------------------------            
+| **Text Mode**  | Users type their request. Theopy interprets it and replies in text within a chat-style    
+                      interface.                      
 
-## Acceptance criteria (for Sprint 1)
-- `docs/stakeholders.md` and `docs/requirements.md` exist in the repo and are readable.
-- Project board created and contains the Sprint 1 cards.
-- At least one person (or you) has reviewed and accepted the brief.
+Both modes rely on the same backend intelligence and processing logic.
 
+---
 
-## Kanban / Project board (quick setup)
-**Columns:** Backlog → To Do → In Progress → In Review → Done
+### 5.2 Example Commands
 
+| User Command                        | Theopy Action                                           |
+| ----------------------------------- | ------------------------------------------------------- |
+| “Show me today’s appointments.”     | Retrieves appointments from Teepy and reads them aloud. |
+| “Send a message to Doctor Martin.”  | Opens the Teepy messaging API and sends the message.    |
+| “What are my unread notifications?” | Lists recent notifications and reads a short summary.   |
+| “Write this down for tomorrow.”     | Adds a note or reminder into the Teepy workspace.       |
+| “Read my last message.”             | Reads out the latest message received.                  |
 
-**Suggested cards for Sprint 1:**
-- Draft stakeholder map (`docs/stakeholders.md`)
-- Create project brief (`docs/requirements.md`)
-- Create GitHub repo skeleton + `docs/`
-- Setup GitHub project board (or Trello)
-- Setup initial CI pipeline stub (linting + tests)
-- Kickoff review meeting (end Sprint 1)
+---
+
+### 5.3 System Capabilities
+
+* **Speech-to-Text (STT):** Converts user voice input into text (using Whisper, Vosk, or SpeechRecognition).
+* **Text-to-Speech (TTS):** Generates natural spoken replies (using pyttsx3 or gTTS).
+* **Natural Language Understanding (NLU):** Interprets user intent in French to determine the correct action.
+* **Conversation Memory:** Keeps short-term context (e.g., “and tomorrow?” after a first question).
+* **Error Handling:** Politely requests clarification if the instruction is unclear.
+
+---
+
+## 6. Technical Specifications
+
+| Component              | Technology                               |
+| ---------------------- | ---------------------------------------- |
+| **Language**           | Python 3.11+                             |
+| **Framework**          | Flask                                    |
+| **ORM / DB**           | SQLAlchemy + SQLite/PostgreSQL           |
+| **Speech Recognition** | Whisper / Vosk / SpeechRecognition       |
+| **Voice Synthesis**    | pyttsx3 / gTTS                           |
+| **Text Interaction**   | REST API / WebSocket                     |
+| **NLU Engine**         | spaCy / rule-based intent classification |
+| **Containerisation**   | Docker                                   |
+| **Version Control**    | Git (GitHub / GitLab)                    |
+| **CI/CD**              | GitHub Actions or GitLab CI              |
+
+---
+
+## 7. Architecture Overview
+
+```
+          ┌───────────────────────────────┐
+          │  User (Voice or Text Input)   │
+          └──────────────┬────────────────┘
+                         │
+       ┌─────────────────┴─────────────────┐
+       │         Theopy Flask Server        │
+       │------------------------------------│
+       │  • Speech-to-Text (STT)            │
+       │  • Natural Language Understanding  │
+       │  • Command Processor               │
+       │  • Teepy API Connector             │
+       │  • Text-to-Speech (TTS)            │
+       └─────────────────┬─────────────────┘
+                         │
+                     [Teepy API]
+                         │
+                     [Teepy Server]
+```
+
+Theopy acts as an **intelligent intermediary** that interprets user intent (spoken or written), calls the correct Teepy service, and provides a clear and natural response.
+
+---
+
+## 8. Non-Functional Requirements
+
+| Category            | Requirement                                                        |
+| ------------------- | ------------------------------------------------------------------ |
+| **Performance**     | Real-time voice and text response (<2 seconds for common actions). |
+| **Security**        | HTTPS and secure API tokens for internal communication.            |
+| **Reliability**     | Automatic reconnection if microphone or network drops.             |
+| **Scalability**     | Modular structure for future AI and language extensions.           |
+| **Privacy**         | Option for local/offline processing without cloud dependency.      |
+| **Maintainability** | Modular Flask Blueprints and well-documented codebase.             |
+| **Accessibility**   | Full support for French and English voice commands.                |
+
+---
+
+## 9. Deliverables
+
+1. **Flask-based Theopy MVP server** with both voice and text communication.
+2. **Speech recognition and synthesis modules.**
+3. **Natural language understanding (NLU) engine.**
+4. **Secure integration with Teepy API.**
+5. **Text chat and voice interaction interfaces.**
+6. **Testing, CI/CD, and Docker deployment.**
+7. **User and technical documentation.**
+
+---
+
+## 10. Project Timeline (2025–2026)
+
+| Phase                               | Period  | Deliverables                                         |
+| ----------------------------------- | ------- | ---------------------------------------------------- |
+| **1. Research & Design**            | Q3 2025 | Architecture, tech stack, NLU & voice tech selection |
+| **2. Core Server Setup**            | Q4 2025 | Flask base, endpoints, authentication                |
+| **3. Voice & Text Modules**         | Q1 2026 | STT, TTS, and text chat interfaces                   |
+| **4. Integration with Teepy**       | Q1 2026 | Secure API connection and commands mapping           |
+| **5. Testing & Optimisation**       | Q2 2026 | Tests, performance tuning, CI/CD setup               |
+| **6. Documentation & Presentation** | Q2 2026 | Final report and MVP demo                            |
+
+---
+
+## 11. Risks and Mitigation
+
+| Risk                      | Mitigation                                             |
+| ------------------------- | ------------------------------------------------------ |
+| Voice model latency       | Provide local offline STT/TTS fallback.                |
+| Misunderstanding commands | Add clarification prompts or suggestions.              |
+| Teepy API changes         | Abstract communication layer for flexibility.          |
+| Privacy concerns          | Store no voice logs and use encrypted communication.   |
+| Limited time              | Prioritise MVP scope: voice + text loop working first. |
+
+---
+
+## 12. Expected Impact
+
+* Simplifies Teepy for everyday users through **natural voice and text interaction**.
+* Reduces time spent navigating menus or typing commands manually.
+* Enhances accessibility and inclusivity for all users.
+* Strengthens Kozea’s image as an **innovator in AI and usability**.
+* Serves as a demonstrative project for the RNCP39583 *Expert en développement logiciel* certification.
+
+---
+
+**This document serves as the official Cahier des Charges for the 2025–2026 Theopy MVP Project.**
+
