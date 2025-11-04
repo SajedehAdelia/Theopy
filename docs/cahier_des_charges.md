@@ -56,11 +56,11 @@ Theopy fits within Kozea’s broader innovation strategy: bringing **AI and voic
 
 ### 5.1 Communication Modes
 
-| Mode           |  Description                   ----------------------------------------------------------------------------------------------------------------------- 
-| **Voice Mode** | Users talk naturally to Theopy. It listens, interprets, executes the corresponding Teepy action, and responds 
+
+**Voice Mode** --> Users talk naturally to Theopy. It listens, interprets, executes the corresponding Teepy action, and responds 
                    by  voice.           
------------------------------------------------------------------------------------------------------------------------            
-| **Text Mode**  | Users type their request. Theopy interprets it and replies in text within a chat-style    
+            
+**Text Mode**  --> Users type their request. Theopy interprets it and replies in text within a chat-style    
                       interface.                      
 
 Both modes rely on the same backend intelligence and processing logic.
