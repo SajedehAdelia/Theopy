@@ -13,43 +13,37 @@ A short list of the core stakeholders, their role and interest.
 
     Interest: Deliver a working, well-documented assistant; demonstrate capability.
 
-2- AI Assistant (GPT/Assistant)
-
-    Role: Project co-pilot — help with design, docs, code snippets, tests and reviews.
-
-    Interest: Assist and speed up delivery.
-
-3- Teepy Product Manager (Adelia)
+2- Teepy Product Manager (Adelia)
 
     Role: Product validation, high-level acceptance, API ownership.
 
     Interest: Integration that preserves data safety and UX.
 
-4- End Users (Teepy users, Les tiere payant of KOZEA company)
+3- End Users (Teepy users, Les tiere payant of KOZEA company)
 
     Role: Consumers of the voice and AI assistant features.
 
     Interest: Reliable, secure voice control that saves time and makes use much easier.
 
-5- Infrastructure / DevOps (Adelia)
+4- Infrastructure / DevOps (Adelia)
 
     Role: Deploy and maintain server (MPC server). Ensure continuous delivery/hosting.
 
     Interest: Secure, observable, scalable systems.
 
-6- LLM / External API Providers (OpenAI, Whisper, TTS vendors)
+5- LLM / External API Providers (OpenAI, Whisper, TTS vendors)
 
     Role: Provide models and services.
 
     Interest: Stable API, predictable costs, usage quotas.
 
-7- QA / Testers (freinds/ beta users)
+6- QA / Testers (Ynov freinds/ beta users)
 
     Role: Validate features, spot bugs, measure response latency.
 
     Interest: A product that "just works" in real usage.
 
-8- Legal / Privacy (if needed later)
+7- Legal / Privacy (if needed later)
 
     Role: Ensure compliance (GDPR, data retention, PII handling).
 
@@ -60,12 +54,12 @@ A short list of the core stakeholders, their role and interest.
 ### RACI matrix (core tasks — adapt as project grows)
 
 
-| Task / Deliverable                      | Responsible     | Accountable   | Consulted                 | Informed      |
-| --------------------------------------- | --------------- | ------------- | ------------------------- | ------------- |
-| Define project scope & success criteria | Adelia          | Adelia        | Product Owner, Assistant  | End users     |
-| Create project docs                     | Adelia          | Adelia        | Assistant                 | Product Owner |
-| Repo & project board setup              | Adelia          | Adelia        | Assistant                 | Product Owner |
-| Prototype: STT → LLM → Theopy API       | Adelia          | Adelia        | Assistant, Product Owner  | QA testers    |
-| Security & data handling design         | Adelia          | Product Owner | Legal / DevOps, Assistant | End users     |
-| Deployment & infra                      | DevOps / Adelia | DevOps        | Assistant                 | Product Owner |
-| User acceptance testing                 | QA / Beta users | Product Owner | Adelia, Assistant         | End users     |
+| Task / Deliverable                      | Responsible     | Accountable                | Consulted                 | Informed      |
+| --------------------------------------- | --------------- | -------------------------- | ------------------------- | ------------- |
+| Define project scope & success criteria | Adelia          | Adelia                     | Ynov Pedagogy             | End users     |
+| Create project docs                     | Adelia          | Adelia                     | Adelia                    | Product Owner |
+| Repo & project board setup              | Adelia          | Adelia                     | Adelia                    | Product Owner |
+| Prototype: STT → LLM → Theopy API       | Adelia          | Adelia                     | DevOps, Ynov freinds      | QA testers    |
+| Security & data handling design         | Adelia          | Product Owner(Adelia)      | DevOps,Ynov freinds       | End users     |
+| Deployment & infra                      | Adelia          | DevOps                     | DevOps,Ynov freinds       | Product Owner |
+| User acceptance testing                 | QA / Beta users | Product Owner(Adelia)      | DevOps, Ynov freinds      | End users     |
