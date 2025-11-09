@@ -1,10 +1,10 @@
-# Cahier des Charges — Theopy
-
-**Project Period:** 2025–2026
-**Author:** Louis XIV (Adelia Fathipoursasansara)
-**Organisation:** Kozea
-**Certificate Reference:** RNCP39583 – *Expert en développement logiciel*
-
+---
+title: "Project brief"
+project: "Theopy – AI Assistant MVP Server"
+author: "Adelia Fathipoursasansara"
+organisation: "Kozea"
+period: "2025–2026"
+certificate: "RNCP39583 – Expert in Software Development"
 ---
 
 ## 1. Project Overview
