@@ -1,4 +1,4 @@
-# Project brief — THEOPY
+# THEOPY
 
 
 ## Vision
