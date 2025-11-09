@@ -1,11 +1,11 @@
-Project: Teepy — Server AI Assistant (voice-first, no GUI)
-
-Author: Adelia Fathipoursasansara
-Date: 21/09/2025
-
-STAKEHOLDER MAP
-
-A short list of the core stakeholders, their role and interest.
+---
+title: "STAKEHOLDER MAP"
+project: "Theopy – AI Assistant MVP Server"
+author: "Adelia Fathipoursasansara"
+organisation: "Kozea"
+period: "2025–2026"
+certificate: "RNCP39583 – Expert in Software Development"
+---
 
 1- Theopy Developer / Project Owner (Adelia)
 
