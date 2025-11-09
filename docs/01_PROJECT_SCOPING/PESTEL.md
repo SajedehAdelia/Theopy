@@ -1,0 +1,13 @@
+## ** PESTEL Analysis for Theopy**
+
+This complements the SWOT by mapping **macro-environmental factors** that may impact the project.
+
+| Factor            | Opportunities                                                                                                                                              | Threats                                                                                                                                          |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Political**     | - Government support for AI innovation and digital transformation. <br> - Policies encouraging accessibility in workplaces.                                | - Strict data protection laws (GDPR, CNIL regulations) affecting voice data storage.                                                             |
+| **Economic**      | - Cost savings for companies adopting AI to streamline workflows. <br> - Growing market for AI-based productivity tools.                                   | - Budget constraints in client organisations may limit adoption. <br> - Economic downturns could slow AI investments.                            |
+| **Social**        | - Increasing acceptance of AI assistants in professional settings. <br> - Accessibility needs drive demand for voice/text interfaces.                      | - Resistance to change from users accustomed to traditional interfaces. <br> - Cultural/language barriers if NLU is imperfect.                   |
+| **Technological** | - Advances in STT/TTS and NLU allow faster, more accurate AI assistants. <br> - Integration with cloud and hybrid systems for performance and scalability. | - Rapidly evolving AI tech may render initial models obsolete quickly. <br> - Dependency on third-party STT/TTS tools with possible limitations. |
+| **Environmental** | - Reduced paper usage via digital interaction (eco-friendly advantage).                                                                                    | - Energy consumption of AI processing could be a concern for local deployments.                                                                  |
+| **Legal**         | - Compliance with accessibility regulations can boost reputation.                                                                                          | - GDPR and privacy compliance may increase implementation complexity. <br> - Intellectual property issues for NLU or TTS models.                 |
+
