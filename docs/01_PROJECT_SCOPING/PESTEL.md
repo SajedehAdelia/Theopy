@@ -1,4 +1,4 @@
-## ** PESTEL Analysis for Theopy**
+## PESTEL Analysis for Theopy
 
 This complements the SWOT by mapping **macro-environmental factors** that may impact the project.
 
