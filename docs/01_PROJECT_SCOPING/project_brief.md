@@ -1,11 +1,14 @@
----
+
+```yaml
+
 title: "Project brief"
 project: "Theopy – AI Assistant MVP Server"
 author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
 period: "2025–2026"
 certificate: "RNCP39583 – Expert in Software Development"
----
+
+```
 
 ## 1. Project Overview
 
@@ -69,13 +72,13 @@ Both modes rely on the same backend intelligence and processing logic.
 
 ### 5.2 Example Commands
 
-| User Command                        | Theopy Action                                           |
-| ----------------------------------- | ------------------------------------------------------- |
-| “Show me today’s appointments.”     | Retrieves appointments from Teepy and reads them aloud. |
-| “Send a message to Doctor Martin.”  | Opens the Teepy messaging API and sends the message.    |
-| “What are my unread notifications?” | Lists recent notifications and reads a short summary.   |
-| “Write this down for tomorrow.”     | Adds a note or reminder into the Teepy workspace.       |
-| “Read my last message.”             | Reads out the latest message received.                  |
+  | User Command                        | Theopy Action                                           |
+  | ----------------------------------- | ------------------------------------------------------- |
+  | “Show me today’s appointments.”     | Retrieves appointments from Teepy and reads them aloud. |
+  | “Send a message to Doctor Martin.”  | Opens the Teepy messaging API and sends the message.    |
+  | “What are my unread notifications?” | Lists recent notifications and reads a short summary.   |
+  | “Write this down for tomorrow.”     | Adds a note or reminder into the Teepy workspace.       |
+  | “Read my last message.”             | Reads out the latest message received.                  |
 
 ---
 
@@ -109,23 +112,23 @@ Both modes rely on the same backend intelligence and processing logic.
 ## 7. Architecture Overview
 
 ```
-          ┌───────────────────────────────┐
-          │  User (Voice or Text Input)   │
-          └──────────────┬────────────────┘
-                         │
-       ┌─────────────────┴──────────────────┐
-       │         Theopy Flask Server        │
-       │------------------------------------│
-       │  • Speech-to-Text (STT)            │
-       │  • Natural Language Understanding  │
-       │  • Command Processor               │
-       │  • Teepy API Connector             │
-       │  • Text-to-Speech (TTS)            │
-       └─────────────────┬──────────────────┘
-                         │
-                     [Teepy API]
-                         │
-                     [Teepy Server]
+                                        ┌───────────────────────────────┐
+                                        │  User (Voice or Text Input)   │
+                                        └──────────────┬────────────────┘
+                                                       │
+                                     ┌─────────────────┴──────────────────┐
+                                     │         Theopy Flask Server        │
+                                     │------------------------------------│
+                                     │  • Speech-to-Text (STT)            │
+                                     │  • Natural Language Understanding  │
+                                     │  • Command Processor               │
+                                     │  • Teepy API Connector             │
+                                     │  • Text-to-Speech (TTS)            │
+                                     └─────────────────┬──────────────────┘
+                                                       │
+                                                   [Teepy API]
+                                                       │
+                                                   [Teepy Server]
 ```
 
 Theopy acts as an **intelligent intermediary** that interprets user intent (spoken or written), calls the correct Teepy service, and provides a clear and natural response.
