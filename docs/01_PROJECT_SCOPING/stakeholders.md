@@ -1,4 +1,4 @@
-``` ymal
+```yaml
 
 title: "STAKEHOLDER MAP"
 project: "Theopy – AI Assistant MVP Server"
