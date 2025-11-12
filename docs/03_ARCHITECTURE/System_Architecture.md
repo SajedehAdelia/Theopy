@@ -1,6 +1,6 @@
 ```yaml
 
-title: "System Architecture"
+title: "SYSTEM ARCHITECTURE"
 project: "Theopy – AI Assistant MVP Server"
 author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
