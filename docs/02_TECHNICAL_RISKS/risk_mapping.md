@@ -1,11 +1,13 @@
----
-title: "Technical Risk Mapping and Incident Monitoring"
+```yaml
+
+title: "TECHNICAL RISK MAPPING AND INCIDENT MONITORING"
 project: "Theopy – AI Assistant MVP Server"
 author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
 period: "2025–2026"
 certificate: "RNCP39583 – Expert en développement logiciel"
----
+
+```
 
 #  Technical Risk Mapping and Incident Monitoring
 
