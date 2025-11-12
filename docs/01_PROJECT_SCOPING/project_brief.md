@@ -1,7 +1,7 @@
 
 ```yaml
 
-title: "Project brief"
+title: "PROJECT BRIEF"
 project: "Theopy – AI Assistant MVP Server"
 author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
