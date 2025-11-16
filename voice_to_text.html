@@ -30,17 +30,17 @@
         function startListening() {
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
-            recognition.interimResults = true;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
 
             recognition.onresult = (event) => {
-                const transcript = Array.from(event.results)
-                    .map(result => result[0].transcript)
-                    .join('');
-                document.getElementById('text').textContent = transcript;
+                const text = event.results[0][0].transcript;
+                document.getElementById('output').textContent = `You said: ${text}`;
+                console.log("Final result:", text);
             };
 
             recognition.onerror = (event) => {
-                console.error("Speech recognition error", event);
+                console.error("Error:", event.error);
             };
 
             recognition.start();
