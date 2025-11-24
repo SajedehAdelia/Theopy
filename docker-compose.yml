@@ -1,0 +1,12 @@
+
+services:
+  theopy:
+    build: .
+    container_name: theopy
+    environment:
+      - MIC_INDEX=
+    # devices:
+    #   - /dev/snd:/dev/snd  # Uncomment this for Linux audio support 
+    volumes:
+      - .:/app
+    restart: unless-stopped

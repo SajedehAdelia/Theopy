@@ -23,7 +23,7 @@ This assistant simplifies daily work on Teepy for people who prefer to communica
 
 ## 2. Context
 
-Kozea’s **Teepy** application is a collaborative communication and management tool used by professionals such as healthcare workers, assistants, and teams to manage their everyday tasks, appointments, and exchanges with clients and colleagues.
+Kozea’s **Teepy** application is a collaborative communication and management tool used by professionals at third-party payment companies to manage their daily tasks, appointments, and exchanges with their clients and colleagues.
 
 However, some users find manual navigation and data entry repetitive, especially when switching between multiple interfaces or devices.
 
