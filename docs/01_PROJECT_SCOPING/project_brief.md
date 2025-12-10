@@ -161,7 +161,18 @@ Theopy acts as an **intelligent intermediary** that interprets user intent (spok
 
 ---
 
-## 10. Project Timeline (2025–2026)
+## 10. Project Management Methodology
+ 
+To ensure steady progress and adaptability, the project follows an **Agile Scrum** methodology adapted for a small team.
+ 
+*   **Sprints:** 2-week cycles to deliver incremental features.
+*   **Tracking:** GitHub Projects (Kanban board) for task management.
+*   **Documentation:** Continuous updates in Markdown (stored in repo) to ensure traceability.
+*   **Reviews:** Regular demos to the Product Owner (Adelia) and stakeholders at the end of each sprint.
+ 
+---
+ 
+## 11. Project Timeline (2025–2026)
 
 | Phase                               | Period  | Deliverables                                         |
 | ----------------------------------- | ------- | ---------------------------------------------------- |
@@ -174,7 +185,7 @@ Theopy acts as an **intelligent intermediary** that interprets user intent (spok
 
 ---
 
-## 11. Risks and Mitigation
+## 12. Risks and Mitigation
 
 | Risk                      | Mitigation                                             |
 | ------------------------- | ------------------------------------------------------ |
@@ -186,7 +197,7 @@ Theopy acts as an **intelligent intermediary** that interprets user intent (spok
 
 ---
 
-## 12. Expected Impact
+## 13. Expected Impact
 
 * Simplifies Teepy for everyday users through **natural voice and text interaction**.
 * Reduces time spent navigating menus or typing commands manually.
