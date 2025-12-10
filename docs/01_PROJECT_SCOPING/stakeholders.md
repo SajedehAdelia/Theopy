@@ -39,7 +39,7 @@ certificate: "RNCP39583 – Expert in Software Development"
 
     Interest: Stable API, predictable costs, usage quotas.
 
-6- QA / Testers (Ynov freinds/ beta users)
+6- QA / Testers (Ynov friends / beta users)
 
     Role: Validate features, spot bugs, measure response latency.
 
@@ -61,7 +61,7 @@ certificate: "RNCP39583 – Expert in Software Development"
 | Define project scope & success criteria | Adelia          | Adelia                     | Ynov Pedagogy             | End users     |
 | Create project docs                     | Adelia          | Adelia                     | Adelia                    | Product Owner |
 | Repo & project board setup              | Adelia          | Adelia                     | Adelia                    | Product Owner |
-| Prototype: STT → LLM → Theopy API       | Adelia          | Adelia                     | DevOps, Ynov freinds      | QA testers    |
-| Security & data handling design         | Adelia          | Product Owner(Adelia)      | DevOps,Ynov freinds       | End users     |
-| Deployment & infra                      | Adelia          | DevOps                     | DevOps,Ynov freinds       | Product Owner |
-| User acceptance testing                 | QA / Beta users | Product Owner(Adelia)      | DevOps, Ynov freinds      | End users     |
+| Prototype: STT → LLM → Theopy API       | Adelia          | Adelia                     | DevOps, Ynov friends      | QA testers    |
+| Security & data handling design         | Adelia          | Product Owner(Adelia)      | DevOps, Ynov friends      | End users     |
+| Deployment & infra                      | Adelia          | DevOps                     | DevOps, Ynov friends      | Product Owner |
+| User acceptance testing                 | QA / Beta users | Product Owner(Adelia)      | DevOps, Ynov friends      | End users     |

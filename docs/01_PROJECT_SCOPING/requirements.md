@@ -58,7 +58,8 @@ A voice-first server-side AI assistant that integrates with Teepy (and future ap
 
 
 ## Tech stack 
-- **Language:** Python (FastAPI) or Node.js (Express). FastAPI recommended for quick iteration.
+- **Language:** Python 3.11+.
+- **Framework:** Flask (chosen for consistency with Teepy).
 - **STT:** Whisper (local) or OpenAI Whisper API.
 - **LLM:** OpenAI (function calling / tool use).
 - **TTS:** Coqui TTS / cloud TTS for higher quality.
