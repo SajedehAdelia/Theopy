@@ -5,11 +5,11 @@ SERVICE_NAME = theopy
 # --- Commands ---
 
 #  Start the whole system
-up:
+docker-up:
 	$(DOCKER_COMPOSE) up --build
 
 #  Stop the system
-down:
+docker-down:
 	$(DOCKER_COMPOSE) down
 
 #  Clean up images, containers, and volumes
@@ -41,8 +41,8 @@ git-feature:
 #  Help command to list available tasks
 help:
 	@echo "Theopy Project Management Commands:"
-	@echo "  make up            - Build and start the containers"
-	@echo "  make down          - Stop containers"
+	@echo "  make docker-up            - Build and start the containers"
+	@echo "  make docker-down          - Stop containers"
 	@echo "  make docker-exec   - Open a bash shell inside the container"
 	@echo "  make docker-clean  - Remove all containers, images, and volumes"
 	@echo "  make logs          - Follow container logs"

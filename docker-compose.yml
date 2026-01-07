@@ -1,12 +1,24 @@
-
 services:
   theopy:
     build: .
+    
     container_name: theopy
+    
+    ports:
+      - "8000:8000"
+      
+    env_file:
+      - .env
     environment:
-      - MIC_INDEX=
+      - MIC_INDEX=${MIC_INDEX:-}
+      
+    # Hardware Access: Kept as a reference for the future Linux/Pi deployment
     # devices:
-    #   - /dev/snd:/dev/snd  # Uncomment this for Linux audio support 
+    #   - /dev/snd:/dev/snd 
+    
+    # Volumes: Vital for development. 
+    # Maps Mac folder to the container so Flask 'debug mode' restarts on code changes.
     volumes:
       - .:/app
+      
     restart: unless-stopped
