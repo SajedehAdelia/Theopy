@@ -1,21 +1,31 @@
 FROM python:3.11-slim
 
-# Install system dependencies needed to build PyAudio
+# --- SYSTEM DEPENDENCIES ---
 RUN apt-get update && apt-get install -y \
-    gcc \
+    g++ \
+    make \
+    libc-dev \
     python3-dev \
     portaudio19-dev \
+    libasound2-dev \
+    curl \
  && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
 WORKDIR /app
 
-# Copy and install Python dependencies
+# --- PYTHON DEPENDENCIES ---
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of your code
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# --- SOURCE CODE ---
 COPY . .
 
-# Start the app
-CMD ["python", "speech_to_text.py"]
+# --- CONFIGURATION ---
+ENV FLASK_APP=src/app.py
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+
+CMD ["python", "src/app.py"]

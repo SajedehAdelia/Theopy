@@ -1,0 +1,35 @@
+🌿 Theopy Gitflow Strategy
+
+To demonstrate expert-level version control, Theopy follows a strict Gitflow workflow.
+
+1. Branching Model
+
+main: Mirror of production. Each merge here is a new release (v1.0.0, v1.1.0).
+
+develop: Where all feature branches merge. This is the "nightly build" branch.
+
+feature/*: Isolated branches for specific tasks.
+
+2. Standard Workflow
+
+Initialize: Ensure you are on develop.
+
+Start Feature: make git-feature name=ai-integration
+
+Commit: Use conventional commits (e.g., feat: add openai connection logic).
+
+Merge: Push your feature and create a Pull Request (PR) to develop.
+
+Release: When develop is stable, merge it into main with a tag.
+
+3. Conventional Commits
+
+feat: A new feature.
+
+fix: A bug fix.
+
+docs: Documentation changes.
+
+test: Adding missing tests.
+
+chore: Updating build tasks, package manager configs, etc.
