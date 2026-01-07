@@ -1,0 +1,28 @@
+.header-main {
+  background-color: #1e3a8a;
+  color: #ffffff;
+  border-bottom: 4px solid #eab308; }
+  .header-main .highlight {
+    color: #eab308; }
+
+.ai-bubble {
+  background-color: #ffffff;
+  border-left: 4px solid #eab308;
+  color: #152860; }
+
+.user-bubble {
+  background-color: #1e3a8a;
+  color: #ffffff;
+  padding: 1rem;
+  border-radius: 1rem;
+  border-top-right-radius: 0; }
+
+.btn-send {
+  background-color: #1e3a8a;
+  color: #eab308;
+  border: none;
+  cursor: pointer;
+  font-weight: bold; }
+  .btn-send:hover {
+    background-color: #23439f;
+    transform: translateY(-2px); }
