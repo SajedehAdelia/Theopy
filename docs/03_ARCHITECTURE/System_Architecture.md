@@ -156,6 +156,28 @@ The design aims for a modular, testable, and secure middleware that maps natural
 
 ---
 
+## Eco-Design & Green IT Strategy
+
+Theopy is designed with a **frugal computing** approach to minimize its carbon footprint and energy consumption:
+
+* **Model Quantization:** We use **quantized AI models** (Whisper/spaCy) to reduce CPU cycles and memory usage by up to 4x, significantly lowering energy consumption during inference.
+* **Trigger-Based Processing:** High-power processing is only activated upon voice detection (VAD), ensuring the server remains in a low-power state when idle.
+* **Resource Optimization:** Docker containerization ensures the application only requests necessary resources, allowing for high-efficiency hosting with low Power Usage Effectiveness (PUE).
+* **Intelligent Caching:** A caching layer for common intents avoids redundant AI inference cycles for identical user queries.
+
+---
+
+## Digital Accessibility (RGAA & OPQUAST)
+
+While voice interaction is a primary accessibility feature, the system adheres to formal digital standards:
+
+* **RGAA (Référentiel Général d’Amélioration de l’Accessibilité):** The web interface complies with RGAA 4.1. This includes keyboard-only navigation for all actions and proper ARIA labels so screen readers can interpret real-time AI responses.
+* **OPQUAST Compliance:** We follow Web Quality Assurance rules to ensure a predictable user experience.
+  * **Rule #74:** All voice-generated content is accompanied by a text alternative.
+  * **Rule #101:** Users are always provided with a visual status indicator (e.g., "Theopy is listening...") to maintain context and control.
+
+---
+
 ## Voice vs Text Flow
 
 ### Voice (Streaming, Low Latency)
