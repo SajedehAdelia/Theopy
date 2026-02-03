@@ -1,0 +1,32 @@
+@import 'colors'
+
+.header-main
+  background-color: $kozea-blue
+  color: $white
+  border-bottom: 4px solid $kozea-yellow
+
+  .highlight
+    color: $kozea-yellow
+
+.ai-bubble
+  background-color: $white
+  border-left: 4px solid $kozea-yellow
+  color: darken($kozea-blue, 10%)
+
+.user-bubble
+  background-color: $kozea-blue
+  color: $white
+  padding: 1rem
+  border-radius: 1rem
+  border-top-right-radius: 0
+
+.btn-send
+  background-color: $kozea-blue
+  color: $kozea-yellow
+  border: none
+  cursor: pointer
+  font-weight: bold
+
+  &:hover
+    background-color: lighten($kozea-blue, 5%)
+    transform: translateY(-2px)
