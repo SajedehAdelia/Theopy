@@ -1,8 +1,8 @@
-# --- Variables ---
 DOCKER_COMPOSE = docker compose
 SERVICE_NAME = theopy
 
-# --- Commands ---
+install:
+	pip3 install -r requirements.txt
 
 #  Start the whole system
 docker-up:
