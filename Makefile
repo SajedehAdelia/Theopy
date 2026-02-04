@@ -26,7 +26,7 @@ logs:
 
 #  Run unit tests inside the container
 test:
-	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) pytest src/tests
+	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) sh -c "export PYTHONPATH=. && pytest src/tests"
 
 #  Rebuild without starting 
 build:
