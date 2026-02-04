@@ -41,7 +41,7 @@ def get_ai_response(user_input):
     """
     try:
         model = genai.GenerativeModel(
-            "gemini-1.5-flash",
+            "models/gemini-2.5-flash",
             system_instruction=(
                 "I am Theopy, a professional AI assistant for Teepy (Kozea). "
                 "I help kozea manage invoices and tiers-payant flows. "
