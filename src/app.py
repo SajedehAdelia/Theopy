@@ -2,14 +2,16 @@ import os
 import sass
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
-from openai import OpenAI
+import google.generativeai as genai
 
 # Load configuration from .env (Secret management is an RNCP requirement)
 load_dotenv()
 
 app = Flask(__name__)
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Configure Gemini
+if os.getenv("GEMINI_API_KEY"):
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 def compile_sass():
     """
@@ -35,24 +37,21 @@ compile_sass()
 def get_ai_response(user_input):
     """
     Core AI logic that maps user requests to Theopy's context.
-    This will eventually handle OpenAI Function Calling to interact with Teepy.
+    Uses Google's Gemini model.
     """
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system", 
-                    "content": (
-                        "I am Theopy, a professional AI assistant for Teepy (Kozea). "
-                        "I help kozea manage invoices and tiers-payant flows. "
-                        "Keep responses helpful, technical, and concise."
-                    )
-                },
-                {"role": "user", "content": user_input}
-            ]
+        model = genai.GenerativeModel(
+            "gemini-1.5-flash",
+            system_instruction=(
+                "I am Theopy, a professional AI assistant for Teepy (Kozea). "
+                "I help kozea manage invoices and tiers-payant flows. "
+                "Keep responses helpful, technical, and concise."
+            )
         )
-        return response.choices[0].message.content
+        
+        # In the future, we can manage chat history here
+        response = model.generate_content(user_input)
+        return response.text
     except Exception as e:
         return f"Theopy Gateway Error: {str(e)}"
 
