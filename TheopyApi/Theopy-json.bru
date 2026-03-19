@@ -1,0 +1,15 @@
+meta {
+  name: Theopy-json
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:5001/api/theopy/invoices/summary
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,16 @@
+meta {
+  name: TheopyApi-get
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5001/api/theopy/ping
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -249,7 +249,7 @@ While voice interaction is a primary accessibility feature, the system adheres t
 
 * **Unit Tests:** Preprocessing, router, Teepy mock.
 * **Integration:** Mocked API + synthetic audio.
-* **End-to-End:** Full voice flow on staging.
+* **End-to-End:** Full voice flow on staging + Gateway Bridge Validation via `/api/theopy/ping` check against the `app` container.
 * **Load Tests:** Concurrent STT streams.
 * **Security:** Static analysis + token leak detection.( Needs checking with Julien and kozea group  )
 
