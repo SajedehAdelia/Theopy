@@ -6,9 +6,6 @@ __pycache__/
 # Pytest cache
 .pytest_cache/
 
-# ReadMe
-ReadMe.md
-
 # Local Environment
 .venv/
 .env
