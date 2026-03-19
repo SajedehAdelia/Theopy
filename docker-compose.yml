@@ -18,7 +18,16 @@ services:
     
     # Volumes: Vital for development. 
     # Maps Mac folder to the container so Flask 'debug mode' restarts on code changes.
+
+    networks:
+      - teepy_default
+
     volumes:
       - .:/app
+      - ../teepy:/app/teepy_source  
       
     restart: unless-stopped
+
+networks:
+  teepy_default:
+    external: true

@@ -3,6 +3,18 @@ import sass
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import google.generativeai as genai
+import sys
+
+
+# 1. Point Python to the 'window' created in Docker
+# This allows 'import teepy' to work even if the files aren't in 'src'
+sys.path.append('/app/teepy_source')
+
+try:
+    from teepy.repositories.invoice import InvoiceRepository
+    print("Successfully linked to Teepy Repositories")
+except ImportError as e:
+    print(f"Could not find Teepy source: {e}")
 
 # Load configuration from .env (Secret management is an RNCP requirement)
 load_dotenv()
@@ -90,6 +102,14 @@ def chat():
         app.logger.error(f"Chat Error: {str(e)}")
         return jsonify({"error": "An internal error occurred"}), 500
 
+def test_connection():
+    try:
+        request = requests.get("http://app:5000/api/theopy/ping")
+        print(f"Connection results: {request.json()}")
+    except Exception as e:
+        print(f"ERROR: Could not connect to Teepy: {str(e)}")
+    
+    
 if __name__ == '__main__':
     # Running on 0.0.0.0 is mandatory for Docker access
     app.run(host='0.0.0.0', port=8000, debug=True)
