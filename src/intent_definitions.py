@@ -19,3 +19,27 @@ INTENT_MAP = {
         "description": "Used for financial status queries."
     }
 }
+
+TOOLS = [
+    {
+        "name": "get_customer_sessions",
+        "description": "Fetches all intervention sessions for a specific pharmacy.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "customer_name": {"type": "string", "description": "The name of the pharmacy"}
+            },
+            "required": ["customer_name"]
+        }
+    },
+    {
+        "name": "open_session_page",
+        "description": "Instructs the UI to navigate to a specific client's session view.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "customer_name": {"type": "string"}
+            }
+        }
+    }
+]
