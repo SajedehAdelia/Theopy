@@ -1,6 +1,6 @@
 import os
 import google.generativeai as genai
-from .intent_definitions import TOOLS
+from intent_definitions import TOOLS
 
 class GeminiCoordinator:
     def __init__(self):

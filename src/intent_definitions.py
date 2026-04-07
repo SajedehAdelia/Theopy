@@ -25,9 +25,9 @@ TOOLS = [
         "name": "get_customer_sessions",
         "description": "Fetches all intervention sessions for a specific pharmacy.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "customer_name": {"type": "string", "description": "The name of the pharmacy"}
+                "customer_name": {"type": "STRING", "description": "The name of the pharmacy"}
             },
             "required": ["customer_name"]
         }
@@ -36,9 +36,9 @@ TOOLS = [
         "name": "open_session_page",
         "description": "Instructs the UI to navigate to a specific client's session view.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "customer_name": {"type": "string"}
+                "customer_name": {"type": "STRING"}
             }
         }
     }

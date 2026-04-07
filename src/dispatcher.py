@@ -1,6 +1,6 @@
 import requests
 from flask import current_app
-from .intent_definitions import INTENT_MAP
+from intent_definitions import INTENT_MAP
 
 class Dispatcher:
     def __init__(self, base_url="http://app:5000"):
@@ -25,9 +25,10 @@ class Dispatcher:
         if not intent_key:
             return {"error": f"Tool {tool_name} not recognized by Dispatcher."}
 
-        config = INTENT_MAP[intent_key]
-        url = f"{self.base_url}{config['route']}"
-        
+        try:
+            config = INTENT_MAP[intent_key]
+            url = f"{self.base_url}{config['route']}"
+            
             # We pass customer_name as a query parameter for GET requests
             params = {}
             if "customer_name" in args:
