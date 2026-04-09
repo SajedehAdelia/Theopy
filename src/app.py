@@ -8,8 +8,6 @@ import google.generativeai as genai
 import sys
 
 
-# 1. Point Python to the 'window' created in Docker
-# This allows 'import teepy' to work even if the files aren't in 'src'
 sys.path.append('/app/teepy_source')
 
 try:
@@ -18,16 +16,14 @@ try:
 except ImportError as e:
     print(f"Could not find Teepy source: {e}")
 
-# Load configuration from .env (Secret management is an RNCP requirement)
 load_dotenv()
 
 app = Flask(__name__)
 
-# Initialize AI and Dispatcher
 ai_coordinator = GeminiCoordinator()
 dispatcher = Dispatcher(base_url="http://app:5000")
 
-# Configure Gemini
+
 if os.getenv("GEMINI_API_KEY"):
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
@@ -56,29 +52,18 @@ compile_sass()
 
 @app.route('/')
 def index():
-    """Renders the main Jinja2 interface"""
-    # Passing variables to Jinja2 to demonstrate dynamic rendering
     return render_template('index.html.jinja2', 
                            title="Theopy AI")
 
 @app.route('/ask', methods=['POST'])
 def ask_theopy():
-    """
-    Main Orchestrator Route. 
-    Validates C2.2.3 by handling complex AI-driven logic.
-    """
     user_input = request.json.get("message")
     if not user_input:
         return jsonify({"error": "No message provided"}), 400
-
-    # The AI Coordinator decides if we need data or just chat
     ai_response = ai_coordinator.ask(user_input)
 
     if ai_response["type"] == "tool_call":
-        # Execute the Teepy API call via the Dispatcher
         data = dispatcher.execute_tool(ai_response)
-        
-        # Check for UI navigation (Expert Title: Interaction Logic)
         nav = dispatcher.handle_navigation(ai_response["name"], data)
         if nav:
             return jsonify(nav)
@@ -89,7 +74,6 @@ def ask_theopy():
             "data": data
         })
 
-    # Standard AI reply
     return jsonify({
         "action": "SPEAK",
         "content": ai_response["content"]
@@ -97,7 +81,7 @@ def ask_theopy():
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Supervision endpoint (Requirement C4.1.2)"""
+    """Supervision endpoint"""
     return jsonify({"status": "healthy", "service": "Theopy-Gateway"}), 200
 
 if __name__ == '__main__':
