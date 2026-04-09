@@ -1,3 +1,5 @@
+from dispatcher import Dispatcher
+from gemini_client import GeminiCoordinator
 import os
 import sass
 from flask import Flask, request, jsonify, render_template
@@ -6,8 +8,6 @@ import google.generativeai as genai
 import sys
 
 
-# 1. Point Python to the 'window' created in Docker
-# This allows 'import teepy' to work even if the files aren't in 'src'
 sys.path.append('/app/teepy_source')
 
 try:
@@ -16,12 +16,14 @@ try:
 except ImportError as e:
     print(f"Could not find Teepy source: {e}")
 
-# Load configuration from .env (Secret management is an RNCP requirement)
 load_dotenv()
 
 app = Flask(__name__)
 
-# Configure Gemini
+ai_coordinator = GeminiCoordinator()
+dispatcher = Dispatcher(base_url="http://app:5000")
+
+
 if os.getenv("GEMINI_API_KEY"):
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
@@ -46,70 +48,42 @@ def compile_sass():
 
 compile_sass()
 
-def get_ai_response(user_input):
-    """
-    Core AI logic that maps user requests to Theopy's context.
-    Uses Google's Gemini model.
-    """
-    try:
-        model = genai.GenerativeModel(
-            "models/gemini-2.5-flash",
-            system_instruction=(
-                "I am Theopy, a professional AI assistant for Teepy (Kozea). "
-                "I help kozea manage invoices and tiers-payant flows. "
-                "Keep responses helpful, technical, and concise."
-            )
-        )
-        
-        # In the future, we can manage chat history here
-        response = model.generate_content(user_input)
-        return response.text
-    except Exception as e:
-        return f"Theopy Gateway Error: {str(e)}"
-
 # --- ROUTES ---
 
 @app.route('/')
 def index():
-    """Renders the main Jinja2 interface"""
-    # Passing variables to Jinja2 to demonstrate dynamic rendering
     return render_template('index.html.jinja2', 
-                           title="Theopy AI", 
-                           user_status="Pharmacy Admin")
+                           title="Theopy AI")
+
+@app.route('/ask', methods=['POST'])
+def ask_theopy():
+    user_input = request.json.get("message")
+    if not user_input:
+        return jsonify({"error": "No message provided"}), 400
+    ai_response = ai_coordinator.ask(user_input)
+
+    if ai_response["type"] == "tool_call":
+        data = dispatcher.execute_tool(ai_response)
+        nav = dispatcher.handle_navigation(ai_response["name"], data)
+        if nav:
+            return jsonify(nav)
+
+        return jsonify({
+            "action": "DISPLAY_DATA",
+            "intent": ai_response["name"],
+            "data": data
+        })
+
+    return jsonify({
+        "action": "SPEAK",
+        "content": ai_response["content"]
+    })
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Monitoring endpoint for DevOps (Block 3)"""
+    """Supervision endpoint"""
     return jsonify({"status": "healthy", "service": "Theopy-Gateway"}), 200
 
-@app.route('/v1/chat', methods=['POST'])
-def chat():
-    """Main Ingress API for text interaction"""
-    try:
-        data = request.get_json()
-        if not data or 'message' not in data:
-            return jsonify({"error": "No message provided"}), 400
-
-        user_input = data['message']
-        ai_reply = get_ai_response(user_input)
-        
-        return jsonify({
-            "reply": ai_reply,
-            "status": "success"
-        }), 200
-
-    except Exception as e:
-        app.logger.error(f"Chat Error: {str(e)}")
-        return jsonify({"error": "An internal error occurred"}), 500
-
-def test_connection():
-    try:
-        request = requests.get("http://app:5000/api/theopy/ping")
-        print(f"Connection results: {request.json()}")
-    except Exception as e:
-        print(f"ERROR: Could not connect to Teepy: {str(e)}")
-    
-    
 if __name__ == '__main__':
     # Running on 0.0.0.0 is mandatory for Docker access
     app.run(host='0.0.0.0', port=8000, debug=True)

@@ -26,7 +26,13 @@ logs:
 
 #  Run unit tests inside the container
 test:
-	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) sh -c "export PYTHONPATH=. && pytest src/tests"
+	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) sh -c "export PYTHONPATH=.:src && pytest src/tests"
+
+# Runs tests + checks if the code is clean
+check:
+	@echo "Running Quality Check..."
+	docker compose exec theopy pytest src/tests
+	@echo "All tests passed!"
 
 #  Rebuild without starting 
 build:
