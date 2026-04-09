@@ -14,3 +14,9 @@ def test_health_endpoint(client):
 def test_ask_no_message(client):
     response = client.post('/ask', json={})
     assert response.status_code == 400
+
+
+def test_teepy_connection(client):
+    response = client.post('/ask', json={"message": "Show sessions for Pharmacie de la Gare"})
+    assert response.status_code == 200
+    assert "DISPLAY_DATA" in response.json["action"]
