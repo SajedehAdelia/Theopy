@@ -28,6 +28,14 @@ logs:
 test:
 	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) sh -c "export PYTHONPATH=. && pytest src/tests"
 
+# Run only light tests (No AI)
+test-light:
+	docker compose exec theopy pytest src/tests -m "not ai" -v
+
+# Run everything 
+test-full:
+	docker compose exec theopy pytest src/tests -v
+
 #  Rebuild without starting 
 build:
 	$(DOCKER_COMPOSE) build

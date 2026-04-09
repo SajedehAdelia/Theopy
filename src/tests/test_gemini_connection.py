@@ -6,6 +6,7 @@ def client():
     with app.test_client() as client:
         yield client
 
+@pytest.mark.ai
 def test_gemini_connection(client):
     """
     PROF MODE: This tests the FULL path:
