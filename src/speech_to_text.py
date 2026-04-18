@@ -1,3 +1,4 @@
+import os
 import speech_recognition as sr
 
 r = sr.Recognizer()
@@ -6,8 +7,6 @@ r = sr.Recognizer()
 print("Available microphones:")
 for index, name in enumerate(sr.Microphone.list_microphone_names()):
     print(f"{index}: {name}")
-
-import os
 
 
 def record_text():
@@ -58,7 +57,8 @@ def record_text():
     except OSError as e:
         print(f"Could not open microphone: {e}")
         print(
-            "If running in Docker, make sure to pass --device /dev/snd (Linux) or setup PulseAudio (Mac)."
+            "If running in Docker, make sure to pass --device",
+            "/dev/snd (Linux) or setup PulseAudio (Mac).",
         )
     except Exception as e:
         print(f"Unexpected error: {e}")

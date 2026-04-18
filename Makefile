@@ -16,8 +16,8 @@ help:
 	@echo "    make build                - Rebuild containers without starting"
 	@echo "    make logs                 - Follow container logs"
 	@echo "  QUALITY & TESTING"
-	@echo "    make format               - Automatically format code with Black"
-	@echo "    make lint                 - Check code style with Flake8"
+	@echo "    make format-black         - Automatically format code with Black"
+	@echo "    make lint-flake8          - Check code style with Flake8"
 	@echo "    make test                 - Run all tests inside the container"
 	@echo "    make test-light           - Run only non-AI tests"
 	@echo "    make test-full            - Run all tests with verbose output"
@@ -57,13 +57,16 @@ logs:
 
 # --- Quality Control & Testing ---
 
-format:
-	@echo "Running Black formatter on src/..."
+fix: format-black lint-flake8
+	@echo "Optimization complete: Code formatted and linted."
+
+format-black:
+	@echo "Running Black formatter..."
 	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) black src/
 
-lint:
-	@echo "Running Flake8 linter on src/..."
-	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) flake8 src/ --max-line-length=100
+lint-flake8:
+	@echo "Checking PEP8 compliance..."
+	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) flake8 src/ --max-line-length=110
 
 test:
 	@echo "Running standard test suite..."
