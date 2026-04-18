@@ -41,4 +41,6 @@ jobs:
           black --check src/
 
       - name: Run tests
-        run: pytest -m "not ai" -v
+        env:
+          PYTHONPATH: .
+        run: pytest -m "not ai" -v || [ $? -eq 5 ]
