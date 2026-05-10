@@ -1,31 +1,15 @@
-from dispatcher import Dispatcher
-from gemini_client import GeminiCoordinator
 import os
 import sass
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
-import google.generativeai as genai
-import sys
 
-
-sys.path.append('/app/teepy_source')
-
-try:
-    from teepy.repositories.invoice import InvoiceRepository
-    print("Successfully linked to Teepy Repositories")
-except ImportError as e:
-    print(f"Could not find Teepy source: {e}")
+from src.dispatcher import AgentDispatcher
 
 load_dotenv()
 
 app = Flask(__name__)
 
-ai_coordinator = GeminiCoordinator()
-dispatcher = Dispatcher(base_url="http://app:5000")
-
-
-if os.getenv("GEMINI_API_KEY"):
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+dispatcher = AgentDispatcher()
 
 def compile_sass():
     """
@@ -37,7 +21,6 @@ def compile_sass():
     
     if os.path.exists(scss_path):
         try:
-            # sass.compile reads the scss file and returns a string of pure CSS.
             with open(css_path, 'w') as f:
                 f.write(sass.compile(filename=scss_path))
             print(" SUCCESS: Sass compiled to CSS.")
@@ -52,37 +35,29 @@ compile_sass()
 
 @app.route('/')
 def index():
-    return render_template('index.html.jinja2', 
-                           title="Theopy AI")
+    return render_template('index.html.jinja2', title="Theopy AI")
 
 @app.route('/ask', methods=['POST'])
-def ask_theopy():
+async def ask_theopy():
+    """The bridge between the Frontend UI and the AI Dispatcher."""
     user_input = request.json.get("message")
+    
     if not user_input:
         return jsonify({"error": "No message provided"}), 400
-    ai_response = ai_coordinator.ask(user_input)
-
-    if ai_response["type"] == "tool_call":
-        data = dispatcher.execute_tool(ai_response)
-        nav = dispatcher.handle_navigation(ai_response["name"], data)
-        if nav:
-            return jsonify(nav)
-
-        return jsonify({
-            "action": "DISPLAY_DATA",
-            "intent": ai_response["name"],
-            "data": data
-        })
-
-    return jsonify({
-        "action": "SPEAK",
-        "content": ai_response["content"]
-    })
+    
+    try:
+        ai_response = await dispatcher.handle_user_input(user_input)
+        
+        return jsonify({"response": ai_response})
+        
+    except Exception as e:
+        print(f"Error processing request: {e}")
+        return jsonify({"error": "I'm having trouble connecting right now."}), 500
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Supervision endpoint"""
-    return jsonify({"status": "healthy", "service": "Theopy-Gateway"}), 200
+    """DevOps Supervision endpoint for Docker health checks."""
+    return jsonify({"status": "healthy", "service": "Theopy-Agent"}), 200
 
 if __name__ == '__main__':
     # Running on 0.0.0.0 is mandatory for Docker access

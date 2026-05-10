@@ -21,12 +21,7 @@ services:
 
     networks:
       - teepy_default
-
-    volumes:
-      - .:/app
-      - ../teepy:/app/teepy_source  
       
-    restart: unless-stopped
 
 networks:
   teepy_default:

@@ -1,55 +1,39 @@
-import requests
-from flask import current_app
-from intent_definitions import INTENT_MAP
+import asyncio
+import logging
+import os
+from dotenv import load_dotenv
 
-class Dispatcher:
-    def __init__(self, base_url="http://app:5000"):
-        self.base_url = base_url
+from src.mcp_client import TeepyMCPClient
+from src.gemini_client import TheopyBrain
 
-    def execute_tool(self, tool_call):
-        """
-        Processes a tool call from Gemini.
-        tool_call format: {'name': 'get_customer_sessions', 'arguments': {'customer_name': '...'}}
-        """
-        tool_name = tool_call.get("name")
-        args = tool_call.get("arguments", {})
+load_dotenv()
 
-        # Mapping tool names to our Internal Intent Map
-        mapping = {
-            "get_customer_sessions": "CUSTOMER_SESSION",
-            "get_invoice_summary": "INVOICE_SUMMARY",
-            "open_session_page": "CUSTOMER_SESSION" 
-        }
+logger = logging.getLogger(__name__)
 
-        intent_key = mapping.get(tool_name)
-        if not intent_key:
-            return {"error": f"Tool {tool_name} not recognized by Dispatcher."}
-
-        try:
-            config = INTENT_MAP[intent_key]
-            url = f"{self.base_url}{config['route']}"
+class AgentDispatcher:
+    def __init__(self):
+        self.teepy_path = os.getenv("TEEPY_PATH")
+        if not self.teepy_path:
+            raise ValueError("TEEPY_PATH is not set in the .env file!")
             
-            # We pass customer_name as a query parameter for GET requests
-            params = {}
-            if "customer_name" in args:
-                params["q"] = args["customer_name"]
+        self.mcp_client = TeepyMCPClient(self.teepy_path)
+        self.brain = None
 
-            response = requests.request(
-                method=config["method"],
-                url=url,
-                params=params,
-                timeout=5
-            )
-            response.raise_for_status()
-            return response.json()
+    async def initialize(self):
+        """Connects to the ERP and wakes up the AI Brain."""
+        await self.mcp_client.connect()
+        self.brain = TheopyBrain(self.mcp_client)
+        logger.info("Theopy Dispatcher initialized and ready.")
 
-        except requests.exceptions.RequestException as e:
-            return {"error": f"Connection to Teepy failed: {str(e)}"}
+    async def handle_user_input(self, text: str) -> str:
+        """Receives text from the Siri UI and returns the AI's spoken response."""
+        if not self.brain:
+            await self.initialize()
+            
+        logger.info("Processing user request...")
+        final_answer = await self.brain.process_user_request(text)
+        return final_answer
 
-    def handle_navigation(self, tool_name, data):
-        """
-        Special logic for 'open_session_page' to tell the Frontend where to go.
-        """
-        if tool_name == "open_session_page":
-            return {"action": "NAVIGATE", "target": "session_view", "data": data}
-        return None
+    async def shutdown(self):
+        await self.mcp_client.close()
+
