@@ -21,7 +21,7 @@ services:
 
     networks:
       - teepy_default
-      
+
 
 networks:
   teepy_default:

@@ -28,4 +28,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-CMD ["python", "src/app.py"]
+CMD ["python", "-m", "src.app"]
