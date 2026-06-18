@@ -1,28 +1,96 @@
-.header-main {
-  background-color: #1e3a8a;
-  color: #ffffff;
-  border-bottom: 4px solid #eab308; }
-  .header-main .highlight {
-    color: #eab308; }
+/* Base Body Styles */
+body {
+  color: #130836;
+  background-color: #f2f4f7; }
 
+/* Header Styling */
+.header-main {
+  background-color: #130836;
+  color: #f2f1f4; }
+
+.highlight {
+  color: #ffc145; }
+
+/* Chat Bubbles */
 .ai-bubble {
   background-color: #ffffff;
-  border-left: 4px solid #eab308;
-  color: #152860; }
+  border: 1px solid #c9c7d1;
+  color: #130836;
+  border-radius: 20px 20px 20px 4px;
+  padding: 1rem 1.5rem; }
 
 .user-bubble {
-  background-color: #1e3a8a;
+  background-color: #5e39c6;
   color: #ffffff;
-  padding: 1rem;
-  border-radius: 1rem;
-  border-top-right-radius: 0; }
+  border-radius: 20px 20px 4px 20px;
+  padding: 1rem 1.5rem; }
 
+/* Input Field */
+.chat-input {
+  border-color: #c9c7d1;
+  background-color: #ffffff;
+  color: #130836; }
+  .chat-input:focus {
+    border-color: #5e39c6;
+    box-shadow: 0 0 0 4px #eae9fc; }
+
+/* The Magic Button */
 .btn-send {
-  background-color: #1e3a8a;
-  color: #eab308;
-  border: none;
-  cursor: pointer;
-  font-weight: bold; }
-  .btn-send:hover {
-    background-color: #23439f;
+  background-color: #5e39c6;
+  color: #ffffff;
+  padding: 1rem 2.5rem;
+  border-radius: 1rem;
+  height: 60px;
+  min-width: 140px;
+  position: relative;
+  overflow: hidden; }
+  .btn-send:hover:not(.thinking-mode) {
+    background-color: #5131a9;
     transform: translateY(-2px); }
+
+.btn-text {
+  transition: opacity 0.3s ease; }
+
+/* --- THE SIRI ANIMATION --- */
+.btn-send.thinking-mode {
+  min-width: 60px;
+  width: 60px;
+  padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(270deg, #5e39c6, #ffc145, #f76f5b, #5e39c6);
+  background-size: 300% 300%;
+  animation: siriPulse 1.5s ease-in-out infinite, fluidColors 3s ease infinite;
+  pointer-events: none; }
+
+/* Makes the orb physically breathe in and out */
+@keyframes siriPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 15px #5e39c6; }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 30px #ffc145; }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px #5e39c6; } }
+
+/* Shifts the gradient colors continuously */
+@keyframes fluidColors {
+  0% {
+    background-position: 0% 50%; }
+  50% {
+    background-position: 100% 50%; }
+  100% {
+    background-position: 0% 50%; } }
+
+/* Standard Fade In for Chat Text */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px); }
+  to {
+    opacity: 1;
+    transform: translateY(0); } }
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards; }

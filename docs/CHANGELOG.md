@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.0] - 2026-06-18
+### FastMCP SSE Integration & Asynchronous Stability
+
+* **Changed:** Transitioned FastMCP client and server communication from STDIO to Server-Sent Events (SSE) transport for robust inter-container networking.
+* **Fixed:** Resolved fatal `asyncio` Event Loop collisions in Flask by isolating the `AgentDispatcher` instantiation inside the `/ask` route using `asyncio.run()`.
+* **Fixed:** Eliminated `google-genai` SDK `ValueError` crashes by explicitly injecting the `GEMINI_API_KEY` into the `genai.Client` constructor for strict Docker environment compatibility.
+* **Fixed:** Corrected Docker DNS routing (`Name or service not known`) and `ConnectError` failures by mapping `TEEPY_MCP_URL` directly to `http://teepy-app-1:5001/sse`.
+* **Infra:** Integrated the FastMCP server directly into the main Teepy ERP container, securely piggybacking on the S6-overlay to inherit the Python virtual environment and PostgreSQL database context.
+
 ## [1.0.0] - 2026-05-10
 ### Architecture Overhaul: Agentic Transformation
 * **Added:** `mcp_client.py` to establish direct, secure STDIO connections to the Teepy ERP backend.

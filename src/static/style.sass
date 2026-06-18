@@ -1,32 +1,100 @@
 @import 'colors'
 
+/* Base Body Styles */
+body
+  color: $teepy-text
+  background-color: $teepy-light-blue
+
+/* Header Styling */
 .header-main
-  background-color: $kozea-blue
-  color: $white
-  border-bottom: 4px solid $kozea-yellow
+  background-color: $teepy-text
+  color: $teepy-light
 
-  .highlight
-    color: $kozea-yellow
+.highlight
+  color: $teepy-active
 
+/* Chat Bubbles */
 .ai-bubble
   background-color: $white
-  border-left: 4px solid $kozea-yellow
-  color: darken($kozea-blue, 10%)
+  border: 1px solid $teepy-border
+  color: $teepy-text
+  border-radius: 20px 20px 20px 4px
+  padding: 1rem 1.5rem
 
 .user-bubble
-  background-color: $kozea-blue
+  background-color: $teepy-action
   color: $white
-  padding: 1rem
-  border-radius: 1rem
-  border-top-right-radius: 0
+  border-radius: 20px 20px 4px 20px
+  padding: 1rem 1.5rem
 
+/* Input Field */
+.chat-input
+  border-color: $teepy-border
+  background-color: $white
+  color: $teepy-text
+  
+  &:focus
+    border-color: $teepy-action
+    box-shadow: 0 0 0 4px $teepy-action-sec
+
+/* The Magic Button */
 .btn-send
-  background-color: $kozea-blue
-  color: $kozea-yellow
-  border: none
-  cursor: pointer
-  font-weight: bold
+  background-color: $teepy-action
+  color: $white
+  padding: 1rem 2.5rem
+  border-radius: 1rem
+  height: 60px
+  min-width: 140px
+  position: relative
+  overflow: hidden
 
-  &:hover
-    background-color: lighten($kozea-blue, 5%)
+  &:hover:not(.thinking-mode)
+    background-color: $teepy-action-hover
     transform: translateY(-2px)
+
+.btn-text
+  transition: opacity 0.3s ease
+
+/* --- THE SIRI ANIMATION --- */
+.btn-send.thinking-mode
+  min-width: 60px
+  width: 60px
+  padding: 0
+  border-radius: 50%
+  background: linear-gradient(270deg, $teepy-action, $teepy-active, $teepy-alert, $teepy-action)
+  background-size: 300% 300%
+  animation: siriPulse 1.5s ease-in-out infinite, fluidColors 3s ease infinite
+  pointer-events: none
+
+/* Makes the orb physically breathe in and out */
+@keyframes siriPulse
+  0%
+    transform: scale(1)
+    box-shadow: 0 0 15px $teepy-action
+  50%
+    transform: scale(1.15)
+    box-shadow: 0 0 30px $teepy-active
+  100%
+    transform: scale(1)
+    box-shadow: 0 0 15px $teepy-action
+
+/* Shifts the gradient colors continuously */
+@keyframes fluidColors
+  0%
+    background-position: 0% 50%
+  50%
+    background-position: 100% 50%
+  100%
+    background-position: 0% 50%
+
+/* Standard Fade In for Chat Text */
+@keyframes fadeIn
+  from
+    opacity: 0
+    transform: translateY(10px)
+  to
+    opacity: 1
+    transform: translateY(0)
+
+.animate-fade-in
+  animation: fadeIn 0.4s ease-out forwards

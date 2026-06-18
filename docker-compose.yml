@@ -16,8 +16,8 @@ services:
     # devices:
     #   - /dev/snd:/dev/snd 
     
-    # Volumes: Vital for development. 
-    # Maps Mac folder to the container so Flask 'debug mode' restarts on code changes.
+    volumes:
+        - .:/app
 
     networks:
       - teepy_default

@@ -1,5 +1,4 @@
 import logging
-import os
 from dotenv import load_dotenv
 
 from src.mcp_client import TeepyMCPClient
@@ -9,13 +8,10 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+
 class AgentDispatcher:
     def __init__(self):
-        self.teepy_path = os.getenv("TEEPY_PATH")
-        if not self.teepy_path:
-            raise ValueError("TEEPY_PATH is not set in the .env file!")
-            
-        self.mcp_client = TeepyMCPClient(self.teepy_path)
+        self.mcp_client = TeepyMCPClient()
         self.brain = None
 
     async def initialize(self):
@@ -28,11 +24,10 @@ class AgentDispatcher:
         """Receives text from the Siri UI and returns the AI's spoken response."""
         if not self.brain:
             await self.initialize()
-            
+
         logger.info("Processing user request...")
         final_answer = await self.brain.process_user_request(text)
         return final_answer
 
     async def shutdown(self):
         await self.mcp_client.close()
-

@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} | Kozea</title>
-    <!-- Tailwind handles layout (flex, padding, margins) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Sass handles branding (colors, borders, specific bubble shapes) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ range(1, 10000) | random }}">
 </head>
 <body class="h-screen flex flex-col font-sans bg-gray-50">
 
-    <!-- Header: Uses .header-main and .highlight -->
     <header class="header-main p-5 shadow-lg flex items-center justify-between">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-3xl font-black tracking-tight">
@@ -19,37 +16,33 @@
             </h1>
             <div class="flex items-center space-x-3">
                 <div class="text-right">
-                    <p class="text-[10px] uppercase tracking-widest opacity-80 leading-none">Status</p>
-                    <p class="text-sm font-bold">{{ user_status }}</p>
+                    <p class="text-[10px] uppercase tracking-widest opacity-80 leading-none text-white">Status</p>
+                    <p class="text-sm font-bold text-white">Online</p>
                 </div>
                 <div class="h-3 w-3 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse"></div>
             </div>
         </div>
     </header>
 
-    <!-- Chat Area: CSS handled by .ai-bubble and .user-bubble -->
     <main id="chat-window" class="flex-1 overflow-y-auto p-6 space-y-6 max-w-5xl mx-auto w-full">
         <div class="flex justify-start">
-            <div class="ai-bubble max-w-lg">
+            <div class="ai-bubble max-w-lg shadow-sm">
                 <p class="font-bold text-xs uppercase tracking-widest mb-1 opacity-60">Theopy Layer</p>
-                <p>Welcome to <strong> Theopy, </strong>I am your Backoffice assist to make your life easier</p>
+                <p>Welcome to <strong>Theopy.</strong> I am your Backoffice assistant. How can I help you today?</p>
             </div>
         </div>
     </main>
 
-    <!-- Footer: Styled by .footer-main -->
-    <footer class="footer-main p-6 shadow-2xl">
+    <footer class="footer-main p-6 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <div class="max-w-5xl mx-auto">
             <form id="chat-form" class="flex items-center space-x-4">
                 <div class="relative flex-1">
-                    <!-- Input: Styled by .chat-input -->
                     <input type="text" id="user-input" autocomplete="off"
                            class="chat-input w-full border-2 rounded-2xl p-4 focus:outline-none transition-all"
                            placeholder="Type your command here...">
                 </div>
-                <!-- Button: Styled by .btn-send -->
-                <button type="submit" class="btn-send px-10 py-4 rounded-2xl font-black text-lg shadow-lg">
-                    SEND
+                <button type="submit" id="send-btn" class="btn-send flex items-center justify-center font-black text-lg shadow-lg transition-all duration-500 ease-in-out">
+                    <span class="btn-text">SEND</span>
                 </button>
             </form>
         </div>
@@ -59,14 +52,23 @@
         const form = document.getElementById('chat-form');
         const input = document.getElementById('user-input');
         const chatWindow = document.getElementById('chat-window');
+        const sendBtn = document.getElementById('send-btn');
+        const btnText = sendBtn.querySelector('.btn-text');
 
         function appendMessage(text, isUser) {
             const wrapper = document.createElement('div');
-            wrapper.className = isUser ? "flex justify-end animate-fade-in" : "flex justify-start animate-fade-in";
+            wrapper.className = isUser ? "flex justify-end animate-fade-in mt-4" : "flex justify-start animate-fade-in mt-4";
             
             const bubble = document.createElement('div');
-            bubble.className = isUser ? "user-bubble max-w-lg" : "ai-bubble max-w-lg";
-            bubble.innerText = text;
+            bubble.className = isUser ? "user-bubble max-w-lg shadow-md" : "ai-bubble max-w-lg shadow-md";
+            bubble.innerHTML = text.replace(/\n/g, '<br>');
+            
+            if (!isUser) {
+                const header = document.createElement('p');
+                header.className = "font-bold text-xs uppercase tracking-widest mb-1 opacity-60";
+                header.innerText = "Theopy Layer";
+                bubble.prepend(header);
+            }
             
             wrapper.appendChild(bubble);
             chatWindow.appendChild(wrapper);
@@ -77,25 +79,39 @@
             e.preventDefault();
             const val = input.value.trim();
             if(!val) return;
+            
             appendMessage(val, true);
             input.value = '';
 
+            // --- UI ANIMATION: TURN ON SIRI MODE ---
+            sendBtn.classList.add('thinking-mode');
+            btnText.style.opacity = '0';
+            input.disabled = true;
+
             try {
-                const res = await fetch('/v1/chat', {
+                const res = await fetch('/ask', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({message: val})
                 });
+                
                 const data = await res.json();
-                appendMessage(data.reply, false);
+                
+                if(data.error) {
+                    appendMessage("Theopy Error: " + data.error, false);
+                } else {
+                    appendMessage(data.response, false);
+                }
             } catch (err) {
                 appendMessage("Theopy Error: Connection lost.", false);
+            } finally {
+                // --- UI ANIMATION: TURN OFF SIRI MODE ---
+                sendBtn.classList.remove('thinking-mode');
+                btnText.style.opacity = '1';
+                input.disabled = false;
+                input.focus();
             }
         };
     </script>
-    <style>
-        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
 </body>
 </html>
