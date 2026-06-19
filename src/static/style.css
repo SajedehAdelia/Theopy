@@ -19,6 +19,48 @@ body {
   border-radius: 20px 20px 20px 4px;
   padding: 1rem 1.5rem; }
 
+/* Chat Bubbles */
+.ai-bubble {
+  background-color: #ffffff;
+  border: 1px solid #c9c7d1;
+  color: #130836;
+  border-radius: 20px 20px 20px 4px;
+  padding: 1rem 1.5rem;
+  /* --- INJECTED MARKDOWN TABLE STYLES --- */
+  /* Fix margins for markdown paragraphs */
+  /* Make sure bold text uses the Kozea token */ }
+  .ai-bubble table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+  .ai-bubble th, .ai-bubble td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #c9c7d1;
+    text-align: left; }
+  .ai-bubble th {
+    background-color: #f2f4f7;
+    color: #3b364a;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em; }
+  .ai-bubble tr:last-child td {
+    border-bottom: none; }
+  .ai-bubble tr:nth-child(even) {
+    background-color: #ffffff; }
+  .ai-bubble tr:nth-child(odd) {
+    background-color: rgba(242, 244, 247, 0.3); }
+  .ai-bubble p {
+    margin-bottom: 0.75rem; }
+  .ai-bubble p:last-child {
+    margin-bottom: 0; }
+  .ai-bubble strong {
+    color: #1e3a8a; }
+
 .user-bubble {
   background-color: #5e39c6;
   color: #ffffff;

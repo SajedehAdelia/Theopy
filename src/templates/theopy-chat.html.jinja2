@@ -6,6 +6,8 @@
     <title>{{ title }} | Kozea</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ range(1, 10000) | random }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body class="h-screen flex flex-col font-sans bg-gray-50">
 
@@ -61,11 +63,17 @@
             
             const bubble = document.createElement('div');
             bubble.className = isUser ? "user-bubble max-w-lg shadow-md" : "ai-bubble max-w-lg shadow-md";
-            bubble.innerHTML = text.replace(/\n/g, '<br>');
             
-            if (!isUser) {
+            // --- NEW PARSING LOGIC ---
+            if (isUser) {
+                // Keep user text safe and simple
+                bubble.innerText = text; 
+            } else {
+                // Parse AI Markdown into HTML tables, bold text, etc.
+                bubble.innerHTML = marked.parse(text); 
+                
                 const header = document.createElement('p');
-                header.className = "font-bold text-xs uppercase tracking-widest mb-1 opacity-60";
+                header.className = "font-bold text-xs uppercase tracking-widest mb-2 opacity-60";
                 header.innerText = "Theopy Layer";
                 bubble.prepend(header);
             }

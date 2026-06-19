@@ -21,6 +21,56 @@ body
   border-radius: 20px 20px 20px 4px
   padding: 1rem 1.5rem
 
+/* Chat Bubbles */
+.ai-bubble
+  background-color: $white
+  border: 1px solid $teepy-border
+  color: $teepy-text
+  border-radius: 20px 20px 20px 4px
+  padding: 1rem 1.5rem
+
+  /* --- INJECTED MARKDOWN TABLE STYLES --- */
+  table
+    width: 100%
+    border-collapse: collapse
+    margin: 1.25rem 0
+    font-size: 0.85rem
+    border-radius: 8px
+    overflow: hidden
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05)
+    
+  th, td
+    padding: 0.75rem 1rem
+    border-bottom: 1px solid $teepy-border
+    text-align: left
+    
+  th
+    background-color: $teepy-light-blue
+    color: $teepy-text-light
+    font-weight: 700
+    text-transform: uppercase
+    font-size: 0.7rem
+    letter-spacing: 0.05em
+    
+  tr:last-child td
+    border-bottom: none
+    
+  tr:nth-child(even)
+    background-color: $white
+    
+  tr:nth-child(odd)
+    background-color: rgba($teepy-light-blue, 0.3)
+    
+  /* Fix margins for markdown paragraphs */
+  p
+    margin-bottom: 0.75rem
+  p:last-child
+    margin-bottom: 0
+  
+  /* Make sure bold text uses the Kozea token */
+  strong
+    color: $kozea-blue
+
 .user-bubble
   background-color: $teepy-action
   color: $white
