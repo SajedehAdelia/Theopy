@@ -1,8 +1,15 @@
 # Changelog
 
+## [1.2.0] - 2026-06-24
+### Local AI Integration & Async Stabilization
+* **Added:** `ollama_client.py` to support local, cost-free LLM inference via Ollama (`llama3.1`) for development and privacy-first deployments.
+* **Added:** Environment variable toggle (`USE_LOCAL_LLM`) in `dispatcher.py` to dynamically switch between the Gemini Cloud Brain and the Ollama Local Brain.
+* **Changed:** Updated AI system instructions in `gemini_client.py` to strictly enforce Markdown table formatting for data list responses, improving UI rendering.
+* **Fixed:** Resolved `asyncio` TaskGroup teardown crashes by explicitly closing the FastMCP SSE bridge in a `finally` block within the dispatcher.
+* **Fixed:** Refactored Pytest suite (`test_dispatcher.py`, `test_app_routes.py`) with `AsyncMock` and `monkeypatch` to support the new dual-brain initialization and eliminate `TypeError` during async assertions.
+
 ## [1.1.0] - 2026-06-18
 ### FastMCP SSE Integration & Asynchronous Stability
-
 * **Changed:** Transitioned FastMCP client and server communication from STDIO to Server-Sent Events (SSE) transport for robust inter-container networking.
 * **Fixed:** Resolved fatal `asyncio` Event Loop collisions in Flask by isolating the `AgentDispatcher` instantiation inside the `/ask` route using `asyncio.run()`.
 * **Fixed:** Eliminated `google-genai` SDK `ValueError` crashes by explicitly injecting the `GEMINI_API_KEY` into the `genai.Client` constructor for strict Docker environment compatibility.

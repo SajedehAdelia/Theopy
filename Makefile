@@ -13,8 +13,8 @@ help:
 	@echo "    make docker-down          - Stop containers"
 	@echo "    make docker-clean         - Remove all containers, images, and volumes"
 	@echo "    make docker-exec          - Open a bash shell inside the container"
-	@echo "    make build                - Rebuild containers without starting"
-	@echo "    make logs                 - Follow container logs"
+	@echo "    make docker-build                - Rebuild containers without starting"
+	@echo "    make docker-logs                 - Follow container logs"
 	@echo "  QUALITY & TESTING"
 	@echo "    make format-black         - Automatically format code with Black"
 	@echo "    make lint-flake8          - Check code style with Flake8"
@@ -47,11 +47,11 @@ docker-exec:
 	@echo "Opening shell in $(SERVICE_NAME)..."
 	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) /bin/bash
 
-build:
+docker-build:
 	@echo "Rebuilding images..."
 	$(DOCKER_COMPOSE) build
 
-logs:
+docker-logs:
 	@echo "Streaming logs..."
 	$(DOCKER_COMPOSE) logs -f
 

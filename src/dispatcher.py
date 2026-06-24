@@ -1,8 +1,8 @@
+import os
 import logging
 from dotenv import load_dotenv
 
 from src.mcp_client import TeepyMCPClient
-from src.gemini_client import TheopyBrain
 
 load_dotenv()
 
@@ -15,19 +15,31 @@ class AgentDispatcher:
         self.brain = None
 
     async def initialize(self):
-        """Connects to the ERP and wakes up the AI Brain."""
+        """Connect to the backend and initialize the Brain."""
         await self.mcp_client.connect()
-        self.brain = TheopyBrain(self.mcp_client)
-        logger.info("Theopy Dispatcher initialized and ready.")
+
+        if os.getenv("USE_LOCAL_LLM") == "1":
+            from .ollama_client import OllamaBrain
+
+            self.brain = OllamaBrain(self.mcp_client)
+            print("🧠 Booting Theopy with LOCAL OLLAMA Model")
+        else:
+            from .gemini_client import GeminiBrain
+
+            self.brain = GeminiBrain(self.mcp_client)
+            print("🧠 Booting Theopy with CLOUD GEMINI Model")
 
     async def handle_user_input(self, text: str) -> str:
         """Receives text from the Siri UI and returns the AI's spoken response."""
         if not self.brain:
             await self.initialize()
-
-        logger.info("Processing user request...")
-        final_answer = await self.brain.process_user_request(text)
-        return final_answer
+        try:
+            logger.info("Processing user request...")
+            final_answer = await self.brain.process_user_request(text)
+            return final_answer
+        finally:
+            if hasattr(self, "mcp_client") and self.mcp_client:
+                await self.mcp_client.close()
 
     async def shutdown(self):
         await self.mcp_client.close()

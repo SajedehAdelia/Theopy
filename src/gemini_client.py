@@ -6,7 +6,7 @@ from google.genai import types
 logger = logging.getLogger(__name__)
 
 
-class TheopyBrain:
+class GeminiBrain:
     def __init__(self, mcp_client):
         self.mcp_client = mcp_client
 
