@@ -1,14 +1,4 @@
-import pytest
 from unittest.mock import AsyncMock, patch
-from src.app import app
-
-
-@pytest.fixture
-def client():
-    """Setup a test client for the Flask application."""
-    app.config["TESTING"] = True
-    with app.test_client() as client:
-        yield client
 
 
 def test_health_endpoint(client):

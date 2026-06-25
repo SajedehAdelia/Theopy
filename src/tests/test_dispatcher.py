@@ -3,14 +3,6 @@ from unittest.mock import AsyncMock, patch
 from src.dispatcher import AgentDispatcher
 
 
-@pytest.fixture
-def mock_env(monkeypatch):
-    """Ensure a clean environment for default tests."""
-    monkeypatch.setenv("TEEPY_PATH", "/mock/path/to/teepy")
-    monkeypatch.setenv("GEMINI_MODEL_ID", "gemini-mock-model")
-    monkeypatch.delenv("USE_LOCAL_LLM", raising=False)
-
-
 @pytest.mark.asyncio
 @patch("src.dispatcher.TeepyMCPClient")
 @patch("src.gemini_client.GeminiBrain")
