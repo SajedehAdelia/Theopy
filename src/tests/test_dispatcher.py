@@ -46,7 +46,6 @@ async def test_dispatcher_handle_user_input(MockClient, mock_env):
     mock_client_instance = MockClient.return_value
     mock_client_instance.close = AsyncMock()
 
-    # Create a generic mock brain for this routing test
     mock_brain_instance = AsyncMock()
     mock_brain_instance.process_user_request = AsyncMock(
         return_value="Mocked AI response"
