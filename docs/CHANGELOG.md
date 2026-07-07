@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0] - 2026-07-07
+### RNCP Certification Dossier & Architecture Documentation
+* **Docs:** Completely overhauled `System_Architecture.md` and `requirements.md` to formally reflect the transition to the FastMCP "Hub & Spoke" model and Server-Sent Events (SSE) data streams.
+* **Docs:** Added `OWASP_mapping.md` to formally document security measures mitigating the OWASP Top 10 vulnerabilities.
+* **Docs:** Updated `project_brief.md`, `SWOT.md`, `PESTEL.md`, and `technical_study.md` to align with the final MVP capabilities, LLM Agnosticism, and the 10-week execution timeline.
+* **Docs:** Revised `cost_estimation.md` and `workload_estimation.md` to reflect the actual J/H (Man-Days) utilized and accurate ROI projections.
+* **Docs:** Expanded `risk_mapping.md` to include specific MCP/SSE operational risks, CI/CD pipeline dependencies, and incident response KPIs.
+
 ## [1.2.0] - 2026-06-24
 ### Local AI Integration & Async Stabilization
 * **Added:** `ollama_client.py` to support local, cost-free LLM inference via Ollama (`llama3.1`) for development and privacy-first deployments.

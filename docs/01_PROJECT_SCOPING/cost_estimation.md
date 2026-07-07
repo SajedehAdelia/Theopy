@@ -5,51 +5,101 @@ author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
 period: "2025–2026"
 certificate: "RNCP39583 – Expert in Software Development"
+
 ```
 
 # Cost Estimation & Budget
 
 ## 1. Overview
-This budget estimates the costs for the **MVP phase** of the Theopy project.
-It is divided into **CAPEX** (Capital Expenditure - Development) and **OPEX** (Operating Expenditure - Running Costs).
 
-## 2. CAPEX: Development Costs
-*Based on the workload estimation of 38 Man-Days.*
+This budget estimates the costs for the **MVP phase** of the Theopy project over a 10-week build period.
+It is divided into **CAPEX** (Capital Expenditure - Development & Initialization) and **OPEX** (Operating Expenditure - Running Costs).
 
-| Item | Unit Cost (Est.) | Quantity | Total Cost |
-|------|------------------|----------|------------|
-| **Internal Development** (Junior/Mid Dev) | 300€ / day | 99.5 days | 29,850€ |
-| **Project Management & Design** | 300€ / day | 10 days | 3,000€ |
-| **Hardware** (Microphone/Headset for testing) | 150€ | 1 | 150€ |
-| **Total CAPEX** | | | **33,000€** |
+## 2. CAPEX: Development & Initialization Costs
+
+The total estimated workload is 92 Man-Days (J/H) distributed across a 10-week sprint.
+
+| Role / Item | Details | Duration | Total Cost |
+| --- | --- | --- | --- |
+| **Lead Backend Engineer** | Implementation of FastMCP, PostgreSQL database, and LLM routing.
+
+ | 2.5 months
+
+ | 16,000 €
+
+ |
+| **Frontend Engineer** | Integration of Theopy UI and SSE client.
+
+ | 1.5 months
+
+ | 9,000 €
+
+ |
+| **DevOps / SecOps** | Hardening inter-container network and CI/CD pipelines.
+
+ | 12 days
+
+ | 6,000 €
+
+ |
+| **Ancillary Costs** | Legal, initial setup, and software licenses.
+
+ | One-off
+
+ | 2,000 €
+
+ |
+| **TOTAL CAPEX** | **Initial Build Investment**<br> | **10 weeks**<br> | **33,000 €**<br> |
 
 *Note: As an internal project (student project), these "costs" are often virtual (salary cost) rather than invoiced amounts.*
 
 ## 3. OPEX: Operating Costs (Monthly)
 
-| Item | Description | Monthly Cost | Annual Cost |
-|------|-------------|--------------|-------------|
-| **Server Hosting (VPS)** | OVH / DigitalOcean (4GB RAM, 2 vCPU for AI models) | 20€ | 240€ |
-| **Domain Name** | .com or .io domain | ~1.50€ | 15€ |
-| **API Costs (OpenAI)** | *Optional* (if not using local Whisper). Budget for testing. | 10€ | 120€ |
-| **CI/CD & Repo** | GitHub (Free Tier) | 0€ | 0€ |
-| **Monitoring** | Grafana/Prometheus (Self-hosted) | 0€ | 0€ |
-| **Total OPEX** | | **31.50€** | **375€** |
+| Resource / Infrastructure | Description | Monthly Cost |
+| --- | --- | --- |
+| **Cloud Infrastructure** | VPS Hosting & Managed PostgreSQL Database.
 
-## 4. Total Budget (Year 1)
+ | ~150 €
 
-| Category | Amount |
-|----------|--------|
-| **Development (One-off)** | 33,000€ |
-| **Operations (12 months)** | 375€ |
-| **Contingency (10%)** | 3,337€ |
-| **TOTAL** | **36,712€** |
+ |
+| **AI Compute** | Token consumption via Google Gemini SDK.
 
-## 5. ROI & Value Proposition
-While the cost is ~15k€, the value lies in:
-1. **Productivity:** Saving 5-10 mins per day per user. For 50 users @ 50€/hour:
-   - 10 mins = ~8€/day/user saved.
-   - 50 users = 400€/day saved.
-   - **Break-even point:** ~37 working days.
-2. **Innovation:** Positioning Kozea as a tech leader.
-3. **Accessibility:** Opening Teepy to new user profiles.
+ | ~50 €
+
+ |
+| **Maintenance** | Architecture monitoring, log analysis, and security patching.
+
+ | ~400 €
+
+ |
+| **TOTAL OPEX** | **Recurring Run Cost**<br> | **600 € / month**<br> |
+
+## 4. ROI Projections & Value Proposition
+
+The deployment of Theopy aims to reduce repetitive manual tasks for the back-office team.
+
+**Financial Indicators:**
+
+* **Target Volume:** 50 back-office users/managers.
+
+
+* **Productivity Gain:** Optimization of 10 minutes per day per user navigating the ERP.
+
+
+* **Time Valuation:** Loaded average internal hourly rate of 40 € / hour.
+
+
+
+**Profitability Calculation:**
+
+1. **Gross Savings:** Revaluing the human time saved (~175 hours/month) generates 7,000 € / month.
+
+
+2. **Net Value Generated:** Gross savings minus the OPEX operational costs results in 6,400 € / month.
+
+
+3. **Break-Even Point:** Complete amortization of the initial CAPEX is achieved in ~5.1 months.
+
+
+4. **Net Profit (Year 1):** Cumulative net financial gain over the first 12 months is estimated at +37,800 €.
+
