@@ -4,6 +4,7 @@ from google import genai
 from google.genai import types
 
 from src.response_guard import sanitize_final_answer
+from src.system_prompt import THEOPY_SYSTEM_INSTRUCTION
 
 logger = logging.getLogger(__name__)
 
@@ -40,17 +41,8 @@ class GeminiBrain:
         mcp_tools = await self.mcp_client.get_available_tools()
         gemini_tools = self._convert_mcp_to_gemini_tools(mcp_tools)
 
-        system_instruction = (
-            "You are Theopy, the intelligent AI voice assistant for the Teepy ERP system. "
-            "Your job is to help managers and operators manage their planning, invoices, and sessions. "
-            "Always use your tools to fetch real data before answering. "
-            "Be concise, professional, and friendly. Do not output raw JSON. "
-            "IMPORTANT: When returning lists of data (like invoices or sessions), "
-            "ALWAYS format the output as a beautiful Markdown table.  "
-        )
-
         config = types.GenerateContentConfig(
-            system_instruction=system_instruction, tools=gemini_tools
+            system_instruction=THEOPY_SYSTEM_INSTRUCTION, tools=gemini_tools
         )
 
         chat = self.client.chats.create(model=self.model_id, config=config)

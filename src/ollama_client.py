@@ -4,6 +4,7 @@ import logging
 from openai import OpenAI
 
 from src.response_guard import sanitize_final_answer
+from src.system_prompt import THEOPY_SYSTEM_INSTRUCTION
 
 logger = logging.getLogger(__name__)
 
@@ -43,15 +44,8 @@ class OllamaBrain:
         mcp_tools = await self.mcp_client.get_available_tools()
         openai_tools = self._convert_mcp_to_openai_tools(mcp_tools)
 
-        system_instruction = (
-            "You are Theopy, the intelligent AI voice assistant for the Teepy ERP system. "
-            "Always use your tools to fetch real data before answering. "
-            "IMPORTANT: When returning lists of data, ALWAYS format the output as a Markdown table. "
-            "Do not output raw JSON to the user."
-        )
-
         messages = [
-            {"role": "system", "content": system_instruction},
+            {"role": "system", "content": THEOPY_SYSTEM_INSTRUCTION},
             {"role": "user", "content": user_text},
         ]
 
