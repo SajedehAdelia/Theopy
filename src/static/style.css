@@ -136,3 +136,72 @@ body {
 
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards; }
+
+/* --- 24H HISTORY SIDEBAR --- */
+#history-sidebar {
+  width: 16rem;
+  background-color: #ffffff;
+  border-color: #c9c7d1;
+  overflow: hidden;
+  transition: width 0.2s ease; }
+  #history-sidebar.sidebar-collapsed {
+    width: 3rem; }
+    #history-sidebar.sidebar-collapsed #history-body,
+    #history-sidebar.sidebar-collapsed #sidebar-title {
+      display: none; }
+
+.sidebar-toggle-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: 0.35rem;
+  border: 1px solid #c9c7d1;
+  background-color: #f2f4f7;
+  color: #3b364a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease; }
+  .sidebar-toggle-btn:hover {
+    background-color: #eae9fc; }
+
+.history-tab {
+  background-color: #f2f4f7;
+  color: #3b364a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.6rem;
+  transition: background-color 0.2s ease, color 0.2s ease; }
+  .history-tab.active {
+    background-color: #5e39c6;
+    color: #ffffff; }
+  .history-tab:hover:not(.active) {
+    background-color: #eae9fc; }
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.6rem;
+  background-color: #f2f4f7; }
+
+.history-time {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #8b879d;
+  text-transform: uppercase; }
+
+.history-summary {
+  font-size: 0.78rem;
+  color: #130836;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; }

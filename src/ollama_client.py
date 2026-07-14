@@ -3,6 +3,8 @@ import json
 import logging
 from openai import OpenAI
 
+from src.response_guard import sanitize_final_answer
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,4 +98,4 @@ class OllamaBrain:
             response_message = response.choices[0].message
             messages.append(response_message)
 
-        return response_message.content
+        return sanitize_final_answer(response_message.content)

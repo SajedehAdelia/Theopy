@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 
 from src.dispatcher import AgentDispatcher
+from src import history_store
 
 load_dotenv()
 
@@ -68,6 +69,12 @@ def ask_theopy():
 def health():
     """DevOps Supervision endpoint for Docker health checks."""
     return jsonify({"status": "healthy", "service": "Theopy-Agent"}), 200
+
+
+@app.route("/history", methods=["GET"])
+def get_history():
+    """Returns the last 24h of MCP tool calls, grouped by business domain."""
+    return jsonify(history_store.get_grouped()), 200
 
 
 if __name__ == "__main__":

@@ -6,6 +6,8 @@ from contextlib import AsyncExitStack
 from mcp import ClientSession
 from mcp.client.sse import sse_client
 
+from src import history_store
+
 logger = logging.getLogger(__name__)
 
 
@@ -72,8 +74,12 @@ class TeepyMCPClient:
 
         # MCP results come back as a list of content blocks. We extract the text.
         if result.content and len(result.content) > 0:
-            return result.content[0].text
-        return "No data returned."
+            text = result.content[0].text
+        else:
+            text = "No data returned."
+
+        history_store.record(tool_name, arguments, text)
+        return text
 
     async def close(self):
         if self._exit_stack:

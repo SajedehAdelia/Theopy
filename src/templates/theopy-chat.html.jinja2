@@ -6,49 +6,70 @@
     <title>{{ title }} | Kozea</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ range(1, 10000) | random }}">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body class="h-screen flex flex-col font-sans bg-gray-50">
+<body class="h-screen font-sans bg-gray-50">
 
-    <header class="header-main p-5 shadow-lg flex items-center justify-between">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-3xl font-black tracking-tight">
-                THEO<span class="highlight">PY</span>
-            </h1>
-            <div class="flex items-center space-x-3">
-                <div class="text-right">
-                    <p class="text-[10px] uppercase tracking-widest opacity-80 leading-none text-white">Status</p>
-                    <p class="text-sm font-bold text-white">Online</p>
-                </div>
-                <div class="h-3 w-3 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse"></div>
-            </div>
-        </div>
-    </header>
+    <div id="theopy-app" class="h-screen flex">
 
-    <main id="chat-window" class="flex-1 overflow-y-auto p-6 space-y-6 max-w-5xl mx-auto w-full">
-        <div class="flex justify-start">
-            <div class="ai-bubble max-w-lg shadow-sm">
-                <p class="font-bold text-xs uppercase tracking-widest mb-1 opacity-60">Theopy Layer</p>
-                <p>Welcome to <strong>Theopy.</strong> I am your Backoffice assistant. How can I help you today?</p>
-            </div>
-        </div>
-    </main>
-
-    <footer class="footer-main p-6 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-        <div class="max-w-5xl mx-auto">
-            <form id="chat-form" class="flex items-center space-x-4">
-                <div class="relative flex-1">
-                    <input type="text" id="user-input" autocomplete="off"
-                           class="chat-input w-full border-2 rounded-2xl p-4 focus:outline-none transition-all"
-                           placeholder="Type your command here...">
-                </div>
-                <button type="submit" id="send-btn" class="btn-send flex items-center justify-center font-black text-lg shadow-lg transition-all duration-500 ease-in-out">
-                    <span class="btn-text">SEND</span>
+        <nav id="history-sidebar" aria-label="Historique des 24 dernières heures" class="hidden md:flex flex-col shrink-0 border-r">
+            <div class="flex items-center justify-between p-3 border-b">
+                <h2 id="sidebar-title" class="text-xs font-black uppercase tracking-widest opacity-60">Historique 24h</h2>
+                <button id="sidebar-toggle" type="button" aria-label="Réduire ou agrandir l'historique" aria-expanded="true" aria-controls="history-body" class="sidebar-toggle-btn">
+                    <span aria-hidden="true">‹</span>
                 </button>
-            </form>
+            </div>
+            <div id="history-body">
+                <div id="history-tabs" role="tablist" aria-label="Domaines" class="flex flex-col gap-1 p-2 border-b"></div>
+                <div id="history-list" role="tabpanel" class="overflow-y-auto p-2 space-y-1 text-sm"></div>
+            </div>
+        </nav>
+
+        <div class="flex-1 flex flex-col min-w-0">
+
+            <header class="header-main p-5 shadow-lg flex items-center justify-between">
+                <div class="container mx-auto flex justify-between items-center">
+                    <h1 class="text-3xl font-black tracking-tight">
+                        THEO<span class="highlight">PY</span>
+                    </h1>
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <p class="text-[10px] uppercase tracking-widest opacity-80 leading-none text-white">Status</p>
+                            <p class="text-sm font-bold text-white">Online</p>
+                        </div>
+                        <div class="h-3 w-3 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse"></div>
+                    </div>
+                </div>
+            </header>
+
+            <main id="chat-window" role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation with Theopy" class="flex-1 overflow-y-auto p-6 space-y-6 max-w-5xl mx-auto w-full">
+                <div class="flex justify-start">
+                    <div class="ai-bubble max-w-lg shadow-sm">
+                        <p class="font-bold text-xs uppercase tracking-widest mb-1 opacity-60">Theopy Layer</p>
+                        <p>Welcome to <strong>Theopy.</strong> I am your Backoffice assistant. How can I help you today?</p>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="footer-main p-6 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+                <div class="max-w-5xl mx-auto">
+                    <form id="chat-form" class="flex items-center space-x-4">
+                        <div class="relative flex-1">
+                            <label for="user-input" class="sr-only">Type your message to Theopy</label>
+                            <input type="text" id="user-input" autocomplete="off"
+                                   aria-label="Message input"
+                                   class="chat-input w-full border-2 rounded-2xl p-4 focus:outline-none transition-all"
+                                   placeholder="Type your command here...">
+                        </div>
+                        <button type="submit" id="send-btn" aria-label="Send message" class="btn-send flex items-center justify-center font-black text-lg shadow-lg transition-all duration-500 ease-in-out">
+                            <span class="btn-text">SEND</span>
+                        </button>
+                    </form>
+                </div>
+            </footer>
+
         </div>
-    </footer>
+    </div>
 
     <script>
         const form = document.getElementById('chat-form');
@@ -56,38 +77,105 @@
         const chatWindow = document.getElementById('chat-window');
         const sendBtn = document.getElementById('send-btn');
         const btnText = sendBtn.querySelector('.btn-text');
+        const sidebar = document.getElementById('history-sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarToggleIcon = sidebarToggle.querySelector('span');
+        const historyTabs = document.getElementById('history-tabs');
+        const historyList = document.getElementById('history-list');
+
+        const HISTORY_DOMAINS = ['Factures', 'Plannings', 'Sessions', 'Relances', 'Autre'];
 
         function appendMessage(text, isUser) {
             const wrapper = document.createElement('div');
             wrapper.className = isUser ? "flex justify-end animate-fade-in mt-4" : "flex justify-start animate-fade-in mt-4";
-            
+
             const bubble = document.createElement('div');
             bubble.className = isUser ? "user-bubble max-w-lg shadow-md" : "ai-bubble max-w-lg shadow-md";
-            
+
             // --- NEW PARSING LOGIC ---
             if (isUser) {
                 // Keep user text safe and simple
-                bubble.innerText = text; 
+                bubble.innerText = text;
             } else {
                 // Parse AI Markdown into HTML tables, bold text, etc.
-                bubble.innerHTML = marked.parse(text); 
-                
+                bubble.innerHTML = marked.parse(text);
+
                 const header = document.createElement('p');
                 header.className = "font-bold text-xs uppercase tracking-widest mb-2 opacity-60";
                 header.innerText = "Theopy Layer";
                 bubble.prepend(header);
             }
-            
+
             wrapper.appendChild(bubble);
             chatWindow.appendChild(wrapper);
             chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+        }
+
+        // --- SIDEBAR-ONLY TOGGLE (collapses the history panel, nothing else) ---
+        sidebarToggle.onclick = () => {
+            const collapsed = sidebar.classList.toggle('sidebar-collapsed');
+            sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+            sidebarToggleIcon.innerText = collapsed ? '›' : '‹';
+        };
+
+        // --- 24H HISTORY SIDEBAR (permanent tabs, always visible) ---
+        let activeDomain = HISTORY_DOMAINS[0];
+        let historyByDomain = {};
+
+        function renderHistoryTabs() {
+            historyTabs.innerHTML = '';
+
+            HISTORY_DOMAINS.forEach((domain) => {
+                const count = (historyByDomain[domain] || []).length;
+                const tab = document.createElement('button');
+                tab.type = 'button';
+                tab.role = 'tab';
+                tab.setAttribute('aria-selected', String(domain === activeDomain));
+                tab.className = 'history-tab' + (domain === activeDomain ? ' active' : '');
+                tab.innerText = domain + ' (' + count + ')';
+                tab.onclick = () => { activeDomain = domain; renderHistoryTabs(); };
+                historyTabs.appendChild(tab);
+            });
+
+            renderHistoryList();
+        }
+
+        function renderHistoryList() {
+            historyList.innerHTML = '';
+            const entries = historyByDomain[activeDomain] || [];
+
+            if (entries.length === 0) {
+                const empty = document.createElement('p');
+                empty.className = 'text-xs opacity-50 px-1';
+                empty.innerText = 'Aucune recherche depuis 24h.';
+                historyList.appendChild(empty);
+                return;
+            }
+
+            entries.forEach((entry) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                const time = new Date(entry.timestamp * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                item.innerHTML = '<span class="history-time">' + time + '</span><span class="history-summary">' + entry.summary + '</span>';
+                historyList.appendChild(item);
+            });
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/history');
+                historyByDomain = await res.json();
+                renderHistoryTabs();
+            } catch (err) {
+                // Silent failure: history is a convenience feature, not critical path.
+            }
         }
 
         form.onsubmit = async (e) => {
             e.preventDefault();
             const val = input.value.trim();
             if(!val) return;
-            
+
             appendMessage(val, true);
             input.value = '';
 
@@ -102,9 +190,9 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({message: val})
                 });
-                
+
                 const data = await res.json();
-                
+
                 if(data.error) {
                     appendMessage("Theopy Error: " + data.error, false);
                 } else {
@@ -118,8 +206,11 @@
                 btnText.style.opacity = '1';
                 input.disabled = false;
                 input.focus();
+                loadHistory();
             }
         };
+
+        loadHistory();
     </script>
 </body>
 </html>

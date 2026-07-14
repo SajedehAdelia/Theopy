@@ -1,5 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
+from src import history_store
+
 
 def test_health_endpoint(client):
     """Test the DevOps supervision endpoint."""
@@ -60,3 +62,26 @@ def test_ask_endpoint_server_error(MockDispatcher, client):
 
     assert response.status_code == 500
     assert response.get_json() == {"error": "I'm having trouble connecting right now."}
+
+
+def test_history_endpoint_empty_by_default(client):
+    """Test that /history returns an empty object when nothing was recorded."""
+    history_store.clear()
+    response = client.get("/history")
+    assert response.status_code == 200
+    assert response.get_json() == {}
+
+
+def test_history_endpoint_returns_grouped_domains(client):
+    """Test that /history exposes recorded tool calls grouped by business domain."""
+    history_store.clear()
+    history_store.record(
+        "fetch_all_invoices_list", {"customer_name": "Gare"}, "Invoices List: ..."
+    )
+
+    response = client.get("/history")
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "Factures" in data
+    assert data["Factures"][0]["tool_name"] == "fetch_all_invoices_list"

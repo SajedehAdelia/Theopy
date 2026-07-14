@@ -3,6 +3,8 @@ import logging
 from google import genai
 from google.genai import types
 
+from src.response_guard import sanitize_final_answer
+
 logger = logging.getLogger(__name__)
 
 
@@ -81,4 +83,4 @@ class GeminiBrain:
                     )
                 )
 
-        return response.text
+        return sanitize_final_answer(response.text)
