@@ -155,10 +155,48 @@
             entries.forEach((entry) => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
+                item.setAttribute('role', 'button');
+                item.setAttribute('tabindex', '0');
                 const time = new Date(entry.timestamp * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
                 item.innerHTML = '<span class="history-time">' + time + '</span><span class="history-summary">' + entry.summary + '</span>';
+                item.onclick = () => recallHistoryEntry(entry);
+                item.onkeydown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); recallHistoryEntry(entry); }
+                };
                 historyList.appendChild(item);
             });
+        }
+
+        // --- CLICK A HISTORY ENTRY -> SCROLL TO IT (or recall it) IN THE CHAT ---
+        function recallHistoryEntry(entry) {
+            const existing = chatWindow.querySelector('[data-history-id="' + entry.id + '"]');
+            if (existing) {
+                existing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                existing.classList.add('recall-highlight');
+                setTimeout(() => existing.classList.remove('recall-highlight'), 1200);
+                return;
+            }
+
+            const time = new Date(entry.timestamp * 1000).toLocaleString('fr-FR');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex justify-start animate-fade-in mt-4';
+            wrapper.setAttribute('data-history-id', entry.id);
+
+            const bubble = document.createElement('div');
+            bubble.className = 'ai-bubble max-w-lg shadow-sm recall-bubble';
+
+            const header = document.createElement('p');
+            header.className = 'font-bold text-xs uppercase tracking-widest mb-2 opacity-60';
+            header.innerText = 'Rappel — ' + entry.domain + ' — ' + time;
+            bubble.appendChild(header);
+
+            const body = document.createElement('div');
+            body.innerHTML = marked.parse(entry.summary);
+            bubble.appendChild(body);
+
+            wrapper.appendChild(bubble);
+            chatWindow.appendChild(wrapper);
+            wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         async function loadHistory() {

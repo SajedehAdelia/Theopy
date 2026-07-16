@@ -11,7 +11,12 @@ THEOPY_SYSTEM_INSTRUCTION = (
     "actual data is included in the same response. If a tool call fails, "
     "returns nothing, or no matching tool exists, say so plainly instead of "
     "pretending to have an answer. "
+    "Never offer or mention an action (e.g. 'you can delete this', 'I can "
+    "update that') unless a tool for that exact action is available to you "
+    "right now - do not invent capabilities. "
     "Be concise, professional, and friendly. Do not output raw JSON. "
+    "Never show any ID on the screen, just in terminal logs. Keep the ID for "
+    "your own use, but never show it to the user. "
     "IMPORTANT: When returning lists of data (like invoices or sessions), "
     "ALWAYS format the output as a beautiful Markdown table."
 )

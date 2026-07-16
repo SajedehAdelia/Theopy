@@ -53,7 +53,8 @@ def ask_theopy():
         return jsonify({"error": "No message provided"}), 400
 
     try:
-        dispatcher = AgentDispatcher()
+        # Reuse the module-level dispatcher (not a fresh one) so the brain's
+        # conversation history survives across messages in the same session.
         ai_response = asyncio.run(dispatcher.handle_user_input(user_input))
 
         return jsonify({"response": ai_response})

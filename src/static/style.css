@@ -176,6 +176,7 @@ body {
   letter-spacing: 0.03em;
   padding: 0.4rem 0.7rem;
   border-radius: 0.6rem;
+  cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease; }
   .history-tab.active {
     background-color: #5e39c6;
@@ -189,7 +190,23 @@ body {
   gap: 0.15rem;
   padding: 0.6rem 0.7rem;
   border-radius: 0.6rem;
-  background-color: #f2f4f7; }
+  background-color: #f2f4f7;
+  cursor: pointer;
+  transition: background-color 0.2s ease; }
+  .history-item:hover {
+    background-color: #eae9fc; }
+
+.recall-bubble {
+  border-color: #5e39c6; }
+
+.recall-highlight {
+  animation: recallFlash 1.2s ease; }
+
+@keyframes recallFlash {
+  0% {
+    box-shadow: 0 0 0 4px #eae9fc; }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); } }
 
 .history-time {
   font-size: 0.65rem;

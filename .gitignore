@@ -9,3 +9,6 @@ __pycache__/
 # Local Environment
 .venv/
 .env
+
+# Runtime data (24h history store)
+src/data/

@@ -20,6 +20,8 @@ class GeminiBrain:
 
         self.client = genai.Client(api_key=api_key)
         self.model_id = os.getenv("GEMINI_MODEL_ID", "gemini-2.5-flash")
+        self.chat = None  # Created once on first message, then reused so the
+        # conversation history (previous turns) is preserved across messages.
 
     def _convert_mcp_to_gemini_tools(self, mcp_tools) -> list:
         """Converts MCP JSON Schemas into Gemini Function Declarations."""
@@ -38,14 +40,18 @@ class GeminiBrain:
     async def process_user_request(self, user_text: str) -> str:
         """The main Agent Loop: Reason, Act, Observe, Respond."""
 
-        mcp_tools = await self.mcp_client.get_available_tools()
-        gemini_tools = self._convert_mcp_to_gemini_tools(mcp_tools)
+        if self.chat is None:
+            mcp_tools = await self.mcp_client.get_available_tools()
+            gemini_tools = self._convert_mcp_to_gemini_tools(mcp_tools)
 
-        config = types.GenerateContentConfig(
-            system_instruction=THEOPY_SYSTEM_INSTRUCTION, tools=gemini_tools
-        )
+            config = types.GenerateContentConfig(
+                system_instruction=THEOPY_SYSTEM_INSTRUCTION,
+                tools=gemini_tools,
+                temperature=0,
+            )
+            self.chat = self.client.chats.create(model=self.model_id, config=config)
 
-        chat = self.client.chats.create(model=self.model_id, config=config)
+        chat = self.chat
         logger.info(f"User asked: {user_text}")
 
         response = chat.send_message(user_text)
