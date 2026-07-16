@@ -78,7 +78,13 @@ class TeepyMCPClient:
         else:
             text = "No data returned."
 
-        history_store.record(tool_name, arguments, text)
+        try:
+            history_store.record(tool_name, arguments, text)
+        except Exception as e:
+            # History logging is a convenience side-effect - it must never break
+            # or mask the real tool result the user actually asked for.
+            logger.warning(f"Failed to record history for {tool_name}: {e}")
+
         return text
 
     async def close(self):

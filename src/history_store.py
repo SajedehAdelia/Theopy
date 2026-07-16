@@ -1,11 +1,12 @@
-import itertools
+import json
 import re
+import sqlite3
 import threading
 import time
+from pathlib import Path
 
+_DB_PATH = Path(__file__).resolve().parent / "data" / "history.db"
 _LOCK = threading.Lock()
-_HISTORY = []
-_ID_COUNTER = itertools.count(1)
 
 RETENTION_SECONDS = 24 * 60 * 60
 
@@ -39,24 +40,48 @@ def _infer_domain(tool_name: str, result: str) -> str:
     return "Autre"
 
 
+def _connect() -> sqlite3.Connection:
+    """Persisted on disk (not in-memory) so history survives server restarts,
+    the dev auto-reloader, and browser page refreshes."""
+    _DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            domain TEXT NOT NULL,
+            tool_name TEXT NOT NULL,
+            arguments TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            timestamp REAL NOT NULL
+        )
+        """
+    )
+    conn.commit()
+    return conn
+
+
+_conn = _connect()
+
+
 def _prune_locked() -> None:
     cutoff = time.time() - RETENTION_SECONDS
-    while _HISTORY and _HISTORY[0]["timestamp"] < cutoff:
-        _HISTORY.pop(0)
+    _conn.execute("DELETE FROM history WHERE timestamp < ?", (cutoff,))
+    _conn.commit()
 
 
 def record(tool_name: str, arguments: dict, result: str) -> None:
-    """Append a tool call to the rolling 24h history. Thread-safe."""
-    entry = {
-        "id": next(_ID_COUNTER),
-        "domain": _infer_domain(tool_name, result),
-        "tool_name": tool_name,
-        "arguments": arguments,
-        "summary": (result or "")[:160],
-        "timestamp": time.time(),
-    }
+    """Append a tool call to the rolling 24h history. Persisted to disk, thread-safe."""
+    domain = _infer_domain(tool_name, result)
+    summary = (result or "")[:160]
+
     with _LOCK:
-        _HISTORY.append(entry)
+        _conn.execute(
+            "INSERT INTO history (domain, tool_name, arguments, summary, timestamp) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (domain, tool_name, json.dumps(arguments), summary, time.time()),
+        )
+        _conn.commit()
         _prune_locked()
 
 
@@ -64,15 +89,28 @@ def get_grouped() -> dict:
     """Return history entries grouped by domain, most recent first, pruned to 24h."""
     with _LOCK:
         _prune_locked()
-        snapshot = list(_HISTORY)
+        rows = _conn.execute(
+            "SELECT id, domain, tool_name, arguments, summary, timestamp "
+            "FROM history ORDER BY id DESC"
+        ).fetchall()
 
     grouped = {}
-    for entry in reversed(snapshot):
-        grouped.setdefault(entry["domain"], []).append(entry)
+    for entry_id, domain, tool_name, arguments_json, summary, timestamp in rows:
+        grouped.setdefault(domain, []).append(
+            {
+                "id": entry_id,
+                "domain": domain,
+                "tool_name": tool_name,
+                "arguments": json.loads(arguments_json),
+                "summary": summary,
+                "timestamp": timestamp,
+            }
+        )
     return grouped
 
 
 def clear() -> None:
     """Testing helper: wipe all recorded history."""
     with _LOCK:
-        _HISTORY.clear()
+        _conn.execute("DELETE FROM history")
+        _conn.commit()
