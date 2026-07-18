@@ -58,6 +58,10 @@ class OllamaBrain:
     async def process_user_request(self, user_text: str) -> str:
         """The main Agent Loop using the Local LLM."""
 
+        # Tags any tool calls made during this turn with the question that
+        # triggered them, so the 24h history can show "what you asked".
+        self.mcp_client.current_question = user_text
+
         if self.openai_tools is None:
             mcp_tools = await self.mcp_client.get_available_tools()
             self.openai_tools = self._convert_mcp_to_openai_tools(mcp_tools)

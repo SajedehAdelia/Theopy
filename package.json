@@ -1,0 +1,8 @@
+{
+  "name": "theopy-frontend-tests",
+  "private": true,
+  "description": "No build step, no runtime dependencies - just Node's built-in test runner for the pure-logic JS modules under src/static/js/.",
+  "scripts": {
+    "test": "node --test frontend-tests/*.test.js"
+  }
+}

@@ -40,6 +40,10 @@ class GeminiBrain:
     async def process_user_request(self, user_text: str) -> str:
         """The main Agent Loop: Reason, Act, Observe, Respond."""
 
+        # Tags any tool calls made during this turn with the question that
+        # triggered them, so the 24h history can show "what you asked".
+        self.mcp_client.current_question = user_text
+
         if self.chat is None:
             mcp_tools = await self.mcp_client.get_available_tools()
             gemini_tools = self._convert_mcp_to_gemini_tools(mcp_tools)

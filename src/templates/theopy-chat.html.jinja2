@@ -7,21 +7,42 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ range(1, 10000) | random }}">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="{{ url_for('static', filename='js/history-logic.js') }}"></script>
 </head>
 <body class="h-screen font-sans bg-gray-50">
 
     <div id="theopy-app" class="h-screen flex">
 
-        <nav id="history-sidebar" aria-label="Historique des 24 dernières heures" class="hidden md:flex flex-col shrink-0 border-r">
+        <nav id="settings-sidebar" aria-label="Paramètres" class="app-sidebar hidden md:flex flex-col shrink-0 border-r">
             <div class="flex items-center justify-between p-3 border-b">
-                <h2 id="sidebar-title" class="text-xs font-black uppercase tracking-widest opacity-60">Historique 24h</h2>
-                <button id="sidebar-toggle" type="button" aria-label="Réduire ou agrandir l'historique" aria-expanded="true" aria-controls="history-body" class="sidebar-toggle-btn">
+                <button id="settings-toggle" type="button" aria-label="Réduire ou agrandir les paramètres" aria-expanded="true" aria-controls="settings-body" class="sidebar-toggle-btn">
                     <span aria-hidden="true">‹</span>
                 </button>
+                <h2 id="settings-title" class="text-xs font-black uppercase tracking-widest opacity-60">Paramètres</h2>
             </div>
-            <div id="history-body">
-                <div id="history-tabs" role="tablist" aria-label="Domaines" class="flex flex-col gap-1 p-2 border-b"></div>
-                <div id="history-list" role="tabpanel" class="overflow-y-auto p-2 space-y-1 text-sm"></div>
+            <div id="settings-body" class="overflow-y-auto p-3 space-y-5 text-sm">
+                <section class="settings-section">
+                    <h3 class="settings-section-title">Compte</h3>
+                    <p class="settings-placeholder">Authentification à venir. Aucun compte connecté pour le moment.</p>
+                </section>
+
+                <section class="settings-section">
+                    <h3 class="settings-section-title">Affichage</h3>
+                    <p class="settings-placeholder">Options d'affichage à venir.</p>
+                </section>
+
+                <section class="settings-section">
+                    <h3 class="settings-section-title">Déconnexion</h3>
+                    <button type="button" class="settings-disabled-btn" disabled
+                            title="Disponible après l'implémentation de l'authentification">
+                        Se déconnecter
+                    </button>
+                </section>
+
+                <section class="settings-section">
+                    <h3 class="settings-section-title">Projet MCP connecté</h3>
+                    <p class="settings-static-value">Teepy</p>
+                </section>
             </div>
         </nav>
 
@@ -69,6 +90,25 @@
             </footer>
 
         </div>
+
+        <nav id="history-sidebar" aria-label="Historique des 24 dernières heures" class="app-sidebar hidden md:flex flex-col shrink-0 border-l">
+            <div class="flex items-center justify-between p-3 border-b">
+                <h2 id="sidebar-title" class="text-xs font-black uppercase tracking-widest opacity-60">Historique 24h</h2>
+                <button id="sidebar-toggle" type="button" aria-label="Réduire ou agrandir l'historique" aria-expanded="true" aria-controls="history-body" class="sidebar-toggle-btn">
+                    <span aria-hidden="true">›</span>
+                </button>
+            </div>
+            <div id="history-body">
+                <div class="p-2 border-b">
+                    <label for="history-search" class="sr-only">Rechercher dans l'historique</label>
+                    <input type="text" id="history-search" autocomplete="off"
+                           class="history-search-input" placeholder="Rechercher un mot...">
+                </div>
+                <div id="history-tabs" role="tablist" aria-label="Domaines" class="flex flex-col gap-1 p-2 border-b"></div>
+                <div id="history-list" role="tabpanel" class="overflow-y-auto p-2 space-y-1 text-sm"></div>
+            </div>
+        </nav>
+
     </div>
 
     <script>
@@ -82,6 +122,10 @@
         const sidebarToggleIcon = sidebarToggle.querySelector('span');
         const historyTabs = document.getElementById('history-tabs');
         const historyList = document.getElementById('history-list');
+        const historySearchInput = document.getElementById('history-search');
+        const settingsSidebar = document.getElementById('settings-sidebar');
+        const settingsToggle = document.getElementById('settings-toggle');
+        const settingsToggleIcon = settingsToggle.querySelector('span');
 
         const HISTORY_DOMAINS = ['Factures', 'Plannings', 'Sessions', 'Relances', 'Autre'];
 
@@ -111,16 +155,25 @@
             chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
         }
 
-        // --- SIDEBAR-ONLY TOGGLE (collapses the history panel, nothing else) ---
+        // --- SIDEBAR-ONLY TOGGLES (each collapses only its own panel) ---
         sidebarToggle.onclick = () => {
             const collapsed = sidebar.classList.toggle('sidebar-collapsed');
             sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
-            sidebarToggleIcon.innerText = collapsed ? '›' : '‹';
+            // On the right-hand sidebar, '›' means "collapse to the right", '‹' means "expand".
+            sidebarToggleIcon.innerText = collapsed ? '‹' : '›';
+        };
+
+        settingsToggle.onclick = () => {
+            const collapsed = settingsSidebar.classList.toggle('sidebar-collapsed');
+            settingsToggle.setAttribute('aria-expanded', String(!collapsed));
+            // On the left-hand sidebar, '‹' means "collapse to the left", '›' means "expand".
+            settingsToggleIcon.innerText = collapsed ? '›' : '‹';
         };
 
         // --- 24H HISTORY SIDEBAR (permanent tabs, always visible) ---
         let activeDomain = HISTORY_DOMAINS[0];
         let historyByDomain = {};
+        let historySearchQuery = '';
 
         function renderHistoryTabs() {
             historyTabs.innerHTML = '';
@@ -133,7 +186,14 @@
                 tab.setAttribute('aria-selected', String(domain === activeDomain));
                 tab.className = 'history-tab' + (domain === activeDomain ? ' active' : '');
                 tab.innerText = domain + ' (' + count + ')';
-                tab.onclick = () => { activeDomain = domain; renderHistoryTabs(); };
+                tab.onclick = () => {
+                    // Picking a tab always means "let me browse manually" - drop
+                    // any active search so the tab filter isn't silently ignored.
+                    activeDomain = domain;
+                    historySearchQuery = '';
+                    historySearchInput.value = '';
+                    renderHistoryTabs();
+                };
                 historyTabs.appendChild(tab);
             });
 
@@ -142,12 +202,20 @@
 
         function renderHistoryList() {
             historyList.innerHTML = '';
-            const entries = historyByDomain[activeDomain] || [];
+
+            // matchesHistorySearch/selectHistoryEntries come from
+            // static/js/history-logic.js (loaded above) - kept there, not
+            // inline, so this exact logic is covered by automated tests
+            // in /frontend-tests.
+            const searching = historySearchQuery.trim().length > 0;
+            const entries = selectHistoryEntries(historyByDomain, activeDomain, historySearchQuery);
 
             if (entries.length === 0) {
                 const empty = document.createElement('p');
                 empty.className = 'text-xs opacity-50 px-1';
-                empty.innerText = 'Aucune recherche depuis 24h.';
+                empty.innerText = searching
+                    ? 'Aucun résultat pour "' + historySearchQuery.trim() + '".'
+                    : 'Aucune recherche depuis 24h.';
                 historyList.appendChild(empty);
                 return;
             }
@@ -158,7 +226,10 @@
                 item.setAttribute('role', 'button');
                 item.setAttribute('tabindex', '0');
                 const time = new Date(entry.timestamp * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                item.innerHTML = '<span class="history-time">' + time + '</span><span class="history-summary">' + entry.summary + '</span>';
+                const domainTag = searching
+                    ? '<span class="history-domain-tag">' + entry.domain + '</span>'
+                    : '';
+                item.innerHTML = domainTag + '<span class="history-time">' + time + '</span><span class="history-summary">' + entry.summary + '</span>';
                 item.onclick = () => recallHistoryEntry(entry);
                 item.onkeydown = (e) => {
                     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); recallHistoryEntry(entry); }
@@ -167,7 +238,14 @@
             });
         }
 
+        historySearchInput.oninput = () => {
+            historySearchQuery = historySearchInput.value;
+            renderHistoryList();
+        };
+
         // --- CLICK A HISTORY ENTRY -> SCROLL TO IT (or recall it) IN THE CHAT ---
+        // Shows the original question first (faded, so it clearly reads as "this was
+        // asked"), then the answer right after - the same order as a live exchange.
         function recallHistoryEntry(entry) {
             const existing = chatWindow.querySelector('[data-history-id="' + entry.id + '"]');
             if (existing) {
@@ -178,25 +256,49 @@
             }
 
             const time = new Date(entry.timestamp * 1000).toLocaleString('fr-FR');
-            const wrapper = document.createElement('div');
-            wrapper.className = 'flex justify-start animate-fade-in mt-4';
-            wrapper.setAttribute('data-history-id', entry.id);
+            const container = document.createElement('div');
+            container.setAttribute('data-history-id', entry.id);
 
-            const bubble = document.createElement('div');
-            bubble.className = 'ai-bubble max-w-lg shadow-sm recall-bubble';
+            if (entry.question) {
+                const qWrapper = document.createElement('div');
+                qWrapper.className = 'flex justify-end animate-fade-in mt-4';
 
-            const header = document.createElement('p');
-            header.className = 'font-bold text-xs uppercase tracking-widest mb-2 opacity-60';
-            header.innerText = 'Rappel — ' + entry.domain + ' — ' + time;
-            bubble.appendChild(header);
+                const qBubble = document.createElement('div');
+                qBubble.className = 'recall-question-bubble max-w-lg';
 
-            const body = document.createElement('div');
-            body.innerHTML = marked.parse(entry.summary);
-            bubble.appendChild(body);
+                const qLabel = document.createElement('p');
+                qLabel.className = 'recall-question-label';
+                qLabel.innerText = 'Question posée';
+                qBubble.appendChild(qLabel);
 
-            wrapper.appendChild(bubble);
-            chatWindow.appendChild(wrapper);
-            wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const qText = document.createElement('p');
+                qText.innerText = entry.question;
+                qBubble.appendChild(qText);
+
+                qWrapper.appendChild(qBubble);
+                container.appendChild(qWrapper);
+            }
+
+            const aWrapper = document.createElement('div');
+            aWrapper.className = 'flex justify-start animate-fade-in mt-4';
+
+            const aBubble = document.createElement('div');
+            aBubble.className = 'ai-bubble max-w-lg shadow-sm recall-bubble';
+
+            const aHeader = document.createElement('p');
+            aHeader.className = 'font-bold text-xs uppercase tracking-widest mb-2 opacity-60';
+            aHeader.innerText = 'Historique — ' + entry.domain + ' — ' + time;
+            aBubble.appendChild(aHeader);
+
+            const aBody = document.createElement('div');
+            aBody.innerHTML = marked.parse(entry.summary);
+            aBubble.appendChild(aBody);
+
+            aWrapper.appendChild(aBubble);
+            container.appendChild(aWrapper);
+
+            chatWindow.appendChild(container);
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         async function loadHistory() {

@@ -20,6 +20,9 @@ class TeepyMCPClient:
         self.teepy_mcp_url = os.getenv("TEEPY_MCP_URL", "http://127.0.0.1:5001/sse")
         self._session = None
         self._exit_stack = None
+        # Set by the brain at the start of each turn, so tool calls made during
+        # that turn can be tagged with the question that triggered them.
+        self.current_question = None
 
     async def connect(self):
         """Establish the SSE connection to the Teepy MCP Server."""
@@ -79,7 +82,9 @@ class TeepyMCPClient:
             text = "No data returned."
 
         try:
-            history_store.record(tool_name, arguments, text)
+            history_store.record(
+                tool_name, arguments, text, question=self.current_question
+            )
         except Exception as e:
             # History logging is a convenience side-effect - it must never break
             # or mask the real tool result the user actually asked for.

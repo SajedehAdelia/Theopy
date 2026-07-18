@@ -21,7 +21,8 @@ help:
 	@echo "    make test                 - Run all tests inside the container"
 	@echo "    make test-light           - Run only non-AI tests"
 	@echo "    make test-full            - Run all tests with verbose output"
-	@echo "    make check                - Run format, lint, and tests sequentially"
+	@echo "    make test-js              - Run the frontend JS tests (host, no Docker/Node dependency in the image)"
+	@echo "    make check                - Run format, lint, Python tests, and JS tests sequentially"
 	@echo "  GITFLOW"
 	@echo "    make git-feature name=xyz - Create a new feature branch from develop"
 
@@ -80,8 +81,12 @@ test-full:
 	@echo "Running full test suite (including AI)..."
 	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) sh -c "export PYTHONPATH=$(PYTHON_PATH) && pytest src/ -v"
 
-check: format-black lint-flake8 test
-	@echo "All quality checks passed: Code is formatted, linted, and tested."
+test-js:
+	@echo "Running frontend JS tests (Node's built-in test runner, no Docker needed)..."
+	npm test
+
+check: format-black lint-flake8 test test-js
+	@echo "All quality checks passed: Code is formatted, linted, and tested (Python + JS)."
 
 # --- Gitflow Helpers ---
 
