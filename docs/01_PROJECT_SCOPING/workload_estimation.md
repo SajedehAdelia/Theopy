@@ -1,64 +1,131 @@
 ```yaml
 title: "WORKLOAD ESTIMATION"
-project: "Theopy – AI Assistant MVP Server"
+project: "Theopy – AI Assistant MCP Server"
 author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
-period: "2025–2026"
+period: "2026"
 certificate: "RNCP39583 – Expert in Software Development"
+
 ```
 
 # Workload Estimation
 
 ## 1. Methodology
-This estimation uses the **Fibonacci sequence** (1, 2, 3, 5, 8, 13, 21) to evaluate the complexity of each User Story or technical task.
-- **1 point** ≈ 0.5 Man-Day (MD)
-- **Velocity:** Estimated at 10 points per week (part-time project).
 
-## 2. Detailed Estimation
+This estimation calculates the required workload in **Man-Days (J/H)** for the initial MVP build. The project is structured around a fast-paced **10-Week Startup Model** (10 Semaines / Modèle Startup). The workload is distributed among three specific technical roles: Lead Backend, Frontend Developer, and DevOps/SecOps.
 
-### Phase 1: Research & Setup (Sprint 0)
-| ID | Task / User Story | Points | Est. Days |
-|----|-------------------|--------|-----------|
-| T1 | Define architecture and select tech stack | 8 | 4.0 |
-| T2 | Set up Git repo, Docker environment, and CI/CD pipeline | 13 | 6.5 |
-| T3 | Research STT/TTS libraries (Whisper, Vosk, pyttsx3) | 8 | 4.0 |
-| **Total** | | **29** | **14.5** |
+## 2. Detailed Estimation by Phase
 
-### Phase 2: Core Server Development (Sprint 1-2)
-| ID | Task / User Story | Points | Est. Days |
-|----|-------------------|--------|-----------|
-| US1 | As a dev, I want a basic Flask server with health endpoints | 5 | 2.5 |
-| US2 | As a user, I want to authenticate via API token | 8 | 4.0 |
-| US3 | As a dev, I want to connect to the Teepy API (mock/real) | 13 | 6.5 |
-| US4 | As a dev, I want a database schema for logs and users | 8 | 4.0 |
-| **Total** | | **34** | **17.0** |
+### Phase 1: Scoping & Infra (Weeks 1-2)
 
-### Phase 3: Voice & Text Modules (Sprint 3-4)
-| ID | Task / User Story | Points | Est. Days |
-|----|-------------------|--------|-----------|
-| US5 | As a user, I want to send text and get a text reply | 13 | 6.5 |
-| US6 | As a user, I want to send an audio file and get a transcript (STT) | 21 | 10.5 |
-| US7 | As a user, I want to receive an audio reply (TTS) | 13 | 6.5 |
-| US8 | As a dev, I want to implement basic NLU (intent detection) | 21 | 10.5 |
-| **Total** | | **68** | **34.0** |
+*Focus: Architecture definition, repository setup, and initial infrastructure configuration.*
 
-### Phase 4: Integration & Polish (Sprint 5-6)
-| ID | Task / User Story | Points | Est. Days |
-|----|-------------------|--------|-----------|
-| US9 | As a user, I want to stream audio for faster response (WebSocket) | 21 | 10.5 |
-| US10 | As a user, I want the assistant to remember my last question | 13 | 6.5 |
-| T4 | Write documentation (User & Technical) | 13 | 6.5 |
-| T5 | Final testing, bug fixing, and optimization | 21 | 10.5 |
-| **Total** | | **68** | **34.0** |
+| Module / Functionality | Responsible | Est. Man-Days (J/H) |
+| --- | --- | --- |
+| Scoping, architecture & project setup (Docker, CI/CD pipelines)
 
-## 3. Summary
+ | Lead Backend
 
-| Phase | Total Points | Estimated Man-Days |
-|-------|--------------|--------------------|
-| 1. Research & Setup | 29 | 14.5 |
-| 2. Core Server | 34 | 17.0 |
-| 3. Voice & Text Modules | 68 | 34.0 |
-| 4. Integration & Polish | 68 | 34.0 |
-| **GRAND TOTAL** | **199** | **99.5 Days** |
+ | 8
 
-**Note:** This represents approximately **5 months of full-time work** (based on ~20 working days/month) or **8-10 months of part-time work**.
+ |
+
+### Phase 2: MCP Server (Weeks 3-6)
+
+*Focus: Building the core backend capabilities, database security, and network bridge.*
+
+| Module / Functionality | Responsible | Est. Man-Days (J/H) |
+| --- | --- | --- |
+| Implementation of FastMCP Server & exposure of ERP tools
+
+ | Lead Backend
+
+ | 15
+
+ |
+| Database security (SQLAlchemy configuration, isolated sessions)
+
+ | Lead Backend
+
+ | 10
+
+ |
+| Asynchronous network bridge (SSE API development & MCP client)
+
+ | Lead Backend
+
+ | 12
+
+ |
+
+### Phase 3: Front & LLM (Weeks 4-8)
+
+*Focus: AI integration, UI creation, and real-time client synchronization.*
+
+| Module / Functionality | Responsible | Est. Man-Days (J/H) |
+| --- | --- | --- |
+| LLM Integration (Google Gemini SDK, prompt engineering & JSON routing)
+
+ | Lead Backend
+
+ | 15
+
+ |
+| Web Interface (Design & integration of Theopy UI)
+
+ | Dev Front
+
+ | 5
+
+ |
+| Real-time synchronization (SSE stream consumption on the client side)
+
+ | Dev Front
+
+ | 15
+
+ |
+
+### Phase 4: Deployment (Weeks 9-10)
+
+*Focus: Finalizing the infrastructure, testing, and release preparation.*
+
+| Module / Functionality | Responsible | Est. Man-Days (J/H) |
+| --- | --- | --- |
+| Deployment & infrastructure (Hardening inter-container network, VPS)
+
+ | DevOps
+
+ | 8
+
+ |
+| Load tests, network debugging (TaskGroup) & final acceptance (UAT)
+
+ | DevOps
+
+ | 4
+
+ |
+
+---
+
+## 3. Workload Summary by Role
+
+| Role | Total Man-Days (J/H) | Equivalent Duration |
+| --- | --- | --- |
+| **Lead Backend**<br> | 60
+
+ | ~2.5 Months
+
+ |
+| **Dev Front**<br> | 20
+
+ | ~1.5 Months
+
+ |
+| **DevOps / SecOps**<br> | 12
+
+ | 12 Days (Part-time)
+
+ |
+| **GRAND TOTAL**<br> | **92 J/H**<br> | **10 Weeks**<br> |

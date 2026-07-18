@@ -80,7 +80,7 @@ test-full:
 	@echo "Running full test suite (including AI)..."
 	$(DOCKER_COMPOSE) exec $(SERVICE_NAME) sh -c "export PYTHONPATH=$(PYTHON_PATH) && pytest src/ -v"
 
-check: format lint test
+check: format-black lint-flake8 test
 	@echo "All quality checks passed: Code is formatted, linted, and tested."
 
 # --- Gitflow Helpers ---

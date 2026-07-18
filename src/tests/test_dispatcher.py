@@ -3,14 +3,6 @@ from unittest.mock import AsyncMock, patch
 from src.dispatcher import AgentDispatcher
 
 
-@pytest.fixture
-def mock_env(monkeypatch):
-    """Ensure a clean environment for default tests."""
-    monkeypatch.setenv("TEEPY_PATH", "/mock/path/to/teepy")
-    monkeypatch.setenv("GEMINI_MODEL_ID", "gemini-mock-model")
-    monkeypatch.delenv("USE_LOCAL_LLM", raising=False)
-
-
 @pytest.mark.asyncio
 @patch("src.dispatcher.TeepyMCPClient")
 @patch("src.gemini_client.GeminiBrain")
@@ -54,7 +46,6 @@ async def test_dispatcher_handle_user_input(MockClient, mock_env):
     mock_client_instance = MockClient.return_value
     mock_client_instance.close = AsyncMock()
 
-    # Create a generic mock brain for this routing test
     mock_brain_instance = AsyncMock()
     mock_brain_instance.process_user_request = AsyncMock(
         return_value="Mocked AI response"

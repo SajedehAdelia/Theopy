@@ -1,67 +1,134 @@
-# THEOPY
+```yaml
+title: "REQUIREMENTS & SPECIFICATIONS"
+project: "Theopy – AI Assistant MCP Server"
+author: "Adelia Fathipoursasansara"
+organisation: "Kozea"
+period: "2026"
+certificate: "RNCP39583 – Expert in Software Development"
 
+```
+
+# THEOPY: Requirements & Specifications
 
 ## Vision
-A voice-first server-side AI assistant that integrates with Teepy (and future apps) so users can control the application and complete tasks by speaking naturally. No front-end besides voice input/output; THEOPY acts as a middleware that maps natural language to safe API actions.
+
+Theopy is an intelligent natural language routing engine. It acts as an autonomous AI agent that integrates with the Teepy ERP (and future applications) so users can retrieve complex data and trigger actions using simple, natural sentences. Theopy relies on a decoupled "Hub & Spoke" architecture via the Model Context Protocol (MCP), ensuring the AI layer remains strictly separated from the ERP's core business logic.
+
+## Objectives (High Level)
+
+* Automate simple interactions with the Teepy software to free up human time and improve Quality of Life at Work (QVT).
 
 
-## Objectives (high level)
-- Provide an assistant that can interpret user requests and perform actions in Teepy via its API.
-- Achieve an MVP where core flows (create client, list appointments, modify records) work reliably.
-- Ensure THEOPY is modular so it can be re-used with other apps in future.
+* Implement a decoupled architecture where Teepy exposes its "business intelligence" via its own MCP server, and Theopy acts as an interchangeable routing agent.
 
 
-## Success criteria (MVP)
-- End-to-end flow works: user says a command → STT → THEOPY extracts intent → server calls Teepy API → THEOPY confirms action via TTS or text.
-- Average response time (STT→Action→TTS) < 3 seconds for common actions (target). Practical target: < 5 seconds.
-- Error handling: THEOPY asks clarifying questions for incomplete commands and logs all actions.
-- Basic tests and CI in place; `docs/` contains design and acceptance criteria.
+* Ensure LLM Agnosticism: The architecture must allow transparent switching between different AI engines (Gemini, Claude, local LLMs) without modifying the business applications' code.
 
 
-## In-scope (MVP)
-- Server-side assistant service (REST/WebSocket) that accepts audio / text and returns audio / text replies.
-- Core intent extraction and command routing to Teepy API.
-- Authentication between THEOPY and Teepy (API token / service account).
-- Basic logging and audit trail for actions taken.
+
+## Success Criteria & KPIs (MVP)
+
+To validate the architecture and the MVP, the following strict metrics must be met:
+
+* **AI Response Time:** < 4 seconds.
 
 
-## Out-of-scope (initial)
-- GUI or browser extension.
-- Full multi-language support (start with English; add support later).
-- Advanced personalisation & user profiles beyond basic mapping.
+* **Routing Accuracy (Function Calling):** > 95%.
 
 
-## Non-functional requirements
-- **Security:** store API credentials encrypted, use HTTPS for all communications.
-- **Performance:** median intent parsing < 300ms (LLM network latency excluded).
-- **Availability:** MVP hosted with a reasonable SLA (e.g., 99% uptime during work hours).
-- **Privacy:** do not store audio longer than needed; log textual commands and actions with retention policy.
+* **Unit Test Coverage:** 80%.
 
 
-## Assumptions
-- Teepy exposes a stable API that can be called from THEOPY server.
-- You have permission to use required LLM / STT / TTS services (OpenAI keys, etc.).
-- You can host the server (a small cloud VM is sufficient for MVP).
+* **Security:** Zero SQL context leakage.
+
+
+
+## In-Scope (MVP)
+
+* Implementation of a FastMCP server within the Teepy backend to securely expose ERP tools.
+
+
+* Asynchronous network bridge using Server-Sent Events (SSE) for unidirectional, lightweight data streaming.
+
+
+* Integration of the Google Gemini SDK (`google-genai`) to force the generation of JSON tool calls instead of free conversational text.
+
+
+* Database security utilizing SQLAlchemy and isolated sessions.
+
+
+* A front-end interface (Theopy UI) capable of consuming real-time SSE streams.
+
+
+
+## Out-of-Scope (Initial)
+
+* **Direct SQL Generation by AI:** Giving the AI direct, unrestricted access to the database to generate SQL queries is explicitly rejected due to critical security risks and the potential for data destruction.
+
+
+* **Coupling AI to Legacy Code:** Embedding the AI logic directly inside the Teepy codebase (rejected as it is unusable for other company projects).
+
+
+
+## Non-Functional Requirements
+
+* **Security & Secrets:** Strict dynamic environment injection via `.env`. Both Theopy and Teepy must refuse to start if keys are missing (Fail-Fast behavior).
+
+
+* **Network Isolation:** Strict port mapping via Docker and the creation of an isolated network bridge for inter-container communication.
+
+
+* **Efficiency:** Use of SSE to eliminate network polling, drastically reducing bandwidth and CPU load.
+
 
 
 ## Risks & Mitigations
-- **Risk:** Dependency on paid APIs (cost). **Mitigation:** Measure usage, use local models for dev, set quotas.
-- **Risk:** Latency and UX degradation. **Mitigation:** Cache frequent responses, use streaming where possible.
-- **Risk:** Security / data leakage. **Mitigation:** Encrypt secrets, limit data retention, implement auth and scopes.
+
+* **Risk (Infrastructure):** Network port conflicts between local containers.
 
 
-## Metrics / KPIs
-- Commands successfully executed (%) — target: 70%+ for MVP.
-- Mean time to execute command (seconds).
-- Number of clarification loops per session.
-- Cost per 1,000 commands (estimate for budget tracking).
+* **Mitigation:** Strict Docker mapping and an isolated network bridge.
 
 
-## Tech stack 
-- **Language:** Python 3.11+.
-- **Framework:** Flask (chosen for consistency with Teepy).
-- **STT:** Whisper (local) or OpenAI Whisper API.
-- **LLM:** OpenAI (function calling / tool use).
-- **TTS:** Coqui TTS / cloud TTS for higher quality.
-- **Orchestration:** LangChain (optional) for tool-calling patterns.
-- **Infra:** small cloud VM (DigitalOcean / AWS / GCP), Docker, GitHub Actions for CI.
+
+
+* **Risk (Security):** Leakage of API keys or database credentials.
+
+
+* **Mitigation:** Dynamic environment injection with Fail-Fast startup.
+
+
+
+
+* **Risk (Vendor Lock-in):** Being trapped with a single AI provider.
+
+
+* **Mitigation:** Business intelligence remains in Teepy; Theopy is an interchangeable router.
+
+
+
+
+* **Risk (Data Accuracy):** AI hallucinations generating false financial data.
+
+
+* **Mitigation:** Strict Function Calling and zero direct SQL access.
+
+
+
+
+
+## Tech Stack
+
+* **Front-end:** HTML5 / CSS3, Vanilla JavaScript, Jinja2 templates.
+
+
+* **Back-end:** Python 3, Flask framework.
+
+
+* **Database:** PostgreSQL, SQLAlchemy ORM.
+
+
+* **AI & Protocols:** Google Gemini SDK (`google-genai`), FastMCP (Model Context Protocol), SSE (Server-Sent Events) network streams.
+
+
+* **Infrastructure:** Docker & Docker Compose, Linux, GNU Make.

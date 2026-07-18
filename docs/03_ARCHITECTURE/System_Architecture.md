@@ -1,255 +1,184 @@
 ```yaml
-
 title: "SYSTEM ARCHITECTURE"
-project: "Theopy – AI Assistant MVP Server"
+project: "Theopy – AI Assistant MCP Server"
 author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
-period: "2025–2026"
+period: "2026"
 certificate: "RNCP39583 – Expert in Software Development"
 
 ```
 
 # System Architecture
 
+This document describes the finalized architecture of **Theopy**. The design has transitioned from a legacy REST/WebSocket monolith to a highly secure, modular **"Hub & Spoke" architecture** using the Model Context Protocol (MCP).
 
-This document describes the architecture of **THEOPY** (voice-first + text-enabled server-side AI assistant).
-It explains the data flows, components, failure modes, scaling, and deployment notes for both **voice** and **text** processing.
-
-The design aims for a modular, testable, and secure middleware that maps natural language (voice/text) to safe **Teepy API** actions.
+The system acts as an intelligent natural language routing engine, ensuring the AI reasoning layer is strictly decoupled from the core Teepy ERP business logic.
 
 ---
 
-## High-Level Architecture
+## High-Level Architecture (Hub & Spoke)
 
-### ASCII Overview
+### Sequence & Data Flow Diagram
+
+```text
+User 
+ │ (Prompt: e.g., "Factures Pharmacie 2019")
+ ▼
+[ Theopy UI (Browser) ]
+ │
+ ▼
+[ Theopy Agent (MCP Client) ] ──(Prompt + List of Tools)──▶ [ Google Gemini API ]
+ │                            ◀──(Intent Detected: JSON)──
+ │
+ ├──(HTTP SSE Request)────────────────────────────────────▶ [ Teepy (MCP Server) ]
+ │                                                               │
+ │                                                               ├──(Secure SQL)──▶ [ PostgreSQL ]
+ │                                                               ◀──(Raw Data)────
+ ◀──(Return data via SSE stream)─────────────────────────────────┘
+ │
+ ├──(Provide ERP data to LLM)─────────────────────────────▶ [ Google Gemini API ]
+ │                            ◀──(Synthesized Text Reply)──
+ ▼
+[ Theopy UI ] (Displays Result)
 
 ```
-                                           User (microphone / browser chat / CLI)
-                                                            │
-                                                      [Ingress API]
-                                                   (REST / WebSocket)
-                                                            │
-                             ┌──────────────────────────────┴────────────────────────────────────┐
-                             │                         THEOPY Server                             │
-                             │  ┌────────────┐   ┌────────────┐   ┌─────────────┐   ┌─────────┐  │
-                             │  │  STT / ASR │   │   NLU &    │   │  Intent &   │   │ TTS /   │  │
-                             │  │(audio->txt)│──▶│  Parsing   │──▶│ Router/Exec │──▶│Synthesis│  │
-                             │  └────────────┘   └────────────┘   └─────────────┘   └─────────┘  │
-                             │        ▲                 │                │                 │     │
-                             │        │                 ▼                │                 │     │
-                             │  (audio stream)   ┌────────────┐          │                 │     │
-                             │                   │Conversation│◀─────────┘                 │     │
-                             │                   │  Memory    │                            │     │
-                             │                   └────────────┘                            │     │
-                             │                       │   ▲                                 │     │
-                             │                       │   │                                 │     │
-                             │                   ┌───┴───┴──┐                              │     │
-                             │                   │Teepy API │◀────────── External Calls ───┘     │
-                             │                   └──────────┘                                    │
-                             └───────────────────────────────────────────────────────────────────┘
-                                                           │
-                                        Monitoring / Logging / Auth / DB / Admin
-```
+
+---
 
 ## Components & Responsibilities
 
-### 1. Ingress API
+### 1. Theopy UI (Front-End)
 
-* **Type:** REST endpoints + WebSocket for streaming audio and bi-directional conversation.
-* **Responsibilities:**
+* **Role:** The browser-based interface where the user inputs natural language commands.
 
-  * Accept audio blobs / streaming audio
-  * Accept text messages
-  * Authenticate requests (API token, JWT)
-  * Forward to appropriate pipeline (voice/text)
-  * Send responses (audio or text)
-* **Example Endpoints:**
 
-  * `POST /v1/voice` — upload audio file (sync)
-  * `WS /v1/stream` — bi-directional streaming
-  * `POST /v1/chat` — text command/reply
-  * `GET /health` — healthcheck
+* **Tech Stack:** HTML5, CSS3, Vanilla JavaScript, and Jinja2 templates.
 
----
 
-### 2. STT / ASR (Speech-to-Text)
+* **Responsibility:** Capture user intent and consume asynchronous Server-Sent Events (SSE) to display real-time updates.
 
-* **Role:** Transform audio into text.
-* **Options:** Whisper API
-* **Behaviour:**
 
-  * Provide partial transcripts for streaming.
-  * Return final transcript for intent parsing.
-* **Fallbacks:** Local Vosk model on failure.
 
----
+### 2. Theopy Agent (MCP Client)
 
-### 3. Text Preprocessor
+* **Role:** The autonomous AI gateway and orchestrator.
 
-* **Role:** Normalise text (trim, lowercase, remove filler, basic punctuation).
-* **Used by:** both STT and text messages → unified pipeline.
 
----
+* **Tech Stack:** Python 3, Flask, FastRTC/FastMCP Client.
 
-### 4. NLU / Intent Extractor
 
-* **Role:** Extract intent, entities, and confidence.
-* **Approach:** Rule-based + spaCy + optional LLM fallback.
-* **Output Example:**
+* **Responsibility:** Receives the user prompt, communicates with the LLM to determine the required tools, and routes the execution to the appropriate external MCP server.
 
-  ```json
-  { "intent": "create_client", "entities": { "name": "John Doe" }, "confidence": 0.92 }
-  ```
 
----
 
-### 5. Intent Router & Validator
+### 3. Intelligence Layer (Google Gemini API)
 
-* **Role:** Validate intents, check permissions, and prepare Teepy API calls.
-* **Patterns:** Circuit breaker, exponential backoff, caching.
-* **Safety:** Field validation + allow-list for sensitive ops.
+* **Role:** The external Large Language Model (LLM) engine.
 
----
 
-### 6. Teepy API Connector
+* **Tech Stack:** `google-genai` SDK.
 
-* **Role:** Handle HTTP calls, authentication, and response transformation.
-* **Resilience:** Retries, timeouts, rate limits.
+
+* **Responsibility:** Performs strict "Function Calling". It translates the natural language prompt into a structured JSON tool call (e.g., triggering `agent_invoices_summary`). It later synthesizes the raw database results into a human-readable reply.
+
+
+
+### 4. Teepy Backend (MCP Server)
+
+* **Role:** The ERP application exposing its business intelligence securely.
+
+
+* **Tech Stack:** Python 3, Flask, FastMCP Server.
+
+
+* **Responsibility:** Validates the tool request, establishes a secure database context, and executes the business logic.
+
+
+
+### 5. Database
+
+* **Role:** The core enterprise data storage.
+
+
+* **Tech Stack:** PostgreSQL, SQLAlchemy ORM.
+
+
+* **Responsibility:** Ensures all queries are parameterized and safe. The AI never has direct SQL generation access, eliminating context leakage risks.
+
+
 
 ---
 
-### 7. Response Builder
+## Inter-Service Communication
 
-* **Role:** Build user-friendly replies.
-* **Modes:** Text-only or text + audio.
-* **Example:** “Created client John Doe for 2025-11-11 at 14:00.”
+* **Server-Sent Events (SSE):** Communication between the Theopy MCP Client and the Teepy MCP Server is handled entirely via SSE. This unidirectional protocol is lightweight, avoids timeout issues common with standard REST requests during LLM inference, and is highly efficient for asynchronous context bubbling.
 
----
 
-### 8. TTS (Text-to-Speech)
+* **LLM Agnosticism:** Because communication is standardized via MCP, the LLM engine (Gemini) can be swapped transparently without modifying the Teepy ERP code.
 
-* **Role:** Convert reply text to audio.
-* **Options:** pyttsx3, Coqui, or cloud TTS.
-* **Fallback:** Return text-only reply on failure.
+
 
 ---
 
-### 9. Conversation Memory
+## Eco-Design & Environmental Impact
 
-* **Role:** Keep short-term session context.
-* **Persistence:** Redis for scalability (text-only).
+Theopy is designed with software sobriety, aligning with sustainable IT practices:
 
----
+* **Compute Delegation:** Instead of hosting highly energy-intensive GPU servers locally 24/7, Theopy delegates the heavy AI calculation "on-demand" via the Google Gemini API.
 
-### 10. Logging, Monitoring, Audit
 
-* **Logging:** Structured JSON with timing + request IDs.
-* **Monitoring:** Prometheus + Grafana dashboards.
-* **Alerting:** Pager/Slack/email for high error rates.
+* **Network Efficiency:** The use of SSE maintains a single, lightweight connection. This eliminates network polling, drastically reducing bandwidth and CPU load compared to legacy architectures.
 
----
 
-### 11. Auth & Secrets
+* **Infrastructure Sobriety:** Deployment relies on lightweight Docker containers, optimizing the use of VPS hardware resources compared to full virtual machines.
 
-* **Secrets:** Vault / AWS Secrets Manager / GPG `.env`.
-* **Authentication:** Service tokens (Theopy↔Teepy).
+
 
 ---
 
-## Eco-Design & Green IT Strategy
+## Digital Accessibility (A11y)
 
-Theopy is designed with a **frugal computing** approach to minimize its carbon footprint and energy consumption:
+The system adheres to formal digital standards to ensure inclusivity:
 
-* **Model Quantization:** We use **quantized AI models** (Whisper/spaCy) to reduce CPU cycles and memory usage by up to 4x, significantly lowering energy consumption during inference.
-* **Trigger-Based Processing:** High-power processing is only activated upon voice detection (VAD), ensuring the server remains in a low-power state when idle.
-* **Resource Optimization:** Docker containerization ensures the application only requests necessary resources, allowing for high-efficiency hosting with low Power Usage Effectiveness (PUE).
-* **Intelligent Caching:** A caching layer for common intents avoids redundant AI inference cycles for identical user queries.
+* **RGAA (Référentiel Général d’Amélioration de l’Accessibilité):** The web interface utilizes semantic HTML5 and proper ARIA labels so screen readers can interpret real-time AI responses generated in the Jinja2 templates.
+* **OPQUAST Compliance:** Users are always provided with visual status indicators when the SSE stream is active or the AI is "thinking," ensuring a predictable and controlled user experience.
 
 ---
 
-## Digital Accessibility (RGAA & OPQUAST)
+## Failure Modes & Security Mitigations
 
-While voice interaction is a primary accessibility feature, the system adheres to formal digital standards:
+| Risk | Mitigation |
+| --- | --- |
+| **Direct SQL Injection by AI** | Strict routing. The AI only outputs JSON tool requests. SQLAlchemy handles all data escaping securely.
 
-* **RGAA (Référentiel Général d’Amélioration de l’Accessibilité):** The web interface complies with RGAA 4.1. This includes keyboard-only navigation for all actions and proper ARIA labels so screen readers can interpret real-time AI responses.
-* **OPQUAST Compliance:** We follow Web Quality Assurance rules to ensure a predictable user experience.
-  * **Rule #74:** All voice-generated content is accompanied by a text alternative.
-  * **Rule #101:** Users are always provided with a visual status indicator (e.g., "Theopy is listening...") to maintain context and control.
+ |
+| **Port Conflicts** | Strict Docker mapping and the creation of an isolated network bridge for inter-container communication.
 
----
+ |
+| **Credential Leaks** | Dynamic injection of `.env` files. Both servers implement Fail-Fast logic and refuse to boot if keys are missing.
 
-## Voice vs Text Flow
+ |
+| **Vendor Lock-in** | Business intelligence remains strictly in Teepy. Theopy acts only as an interchangeable router.
 
-### Voice (Streaming, Low Latency)
-
-1. Client opens WS `/v1/stream`.
-2. STT returns partial transcripts.
-3. NLU detects intents early.
-4. Router validates + calls Teepy API.
-5. Response Builder formats reply.
-6. TTS synthesises and streams audio.
-7. Memory updated + logs emitted.
-
-### Text (Synchronous)
-
-1. Client `POST /v1/chat`.
-2. Text Preprocessor normalises input.
-3. NLU extracts intent.
-4. Router validates + executes.
-5. Response returned (text or audio).
-6. Memory + logs updated.
-
-**Key design:** Same NLU + Intent Router for both voice and text.
-
----
-
-## Failure Modes & Fallbacks
-
-| Failure            | Fallback                        |
-| ------------------ | ------------------------------- |
-| STT timeout        | Local STT or ask user to resend |
-| NLU low confidence | Clarification prompt            |
-| Teepy API error    | Retry (3x, exponential backoff) |
-| TTS failure        | Text-only reply                 |
-| High CPU/memory    | Queue or reject input           |
-
----
-
-## Deployment & Scaling
-
-* **Containerisation:** Docker (main, STT, TTS).
-* **Orchestration:** Docker Compose (MVP) → Kubernetes (prod).
-* **Storage:** PostgreSQL (audit/config), Redis (sessions).
-* **CI/CD:** GitHub Actions → lint, tests, build, deploy.
-* **Env vars:**
-
-  ```
-  THEOPY_ENV=staging
-  TEEPY_API_URL=https://api.teepy.io
-  TEEPY_API_TOKEN=secret
-  STT_MODE=local|cloud
-  TTS_MODE=local|cloud
-  ```
+ |
 
 ---
 
 ## Observability & KPIs
 
-| Metric                   | Target                  |
-| ------------------------ | ----------------------- |
-| Latency (STT→Action→TTS) | < 3s (goal), < 5s (MVP) |
-| Command success rate     | ≥ 70%                   |
-| Clarification loop rate  | ≤ 1 per session         |
-| Uptime                   | ≥ 99%                   |
-| STT WER                  | ≤ 15%                   |
+To validate the deployment, the architecture must strictly achieve the following metrics:
 
----
+| Metric | Target |
+| --- | --- |
+| **AI Response Time** | < 4 seconds
 
-## Testing Strategy
+ |
+| **Routing Accuracy (Function Calling)** | > 95%
 
-* **Unit Tests:** Preprocessing, router, Teepy mock.
-* **Integration:** Mocked API + synthetic audio.
-* **End-to-End:** Full voice flow on staging + Gateway Bridge Validation via `/api/theopy/ping` check against the `app` container.
-* **Load Tests:** Concurrent STT streams.
-* **Security:** Static analysis + token leak detection.( Needs checking with Julien and kozea group  )
+ |
+| **Unit Test Coverage** | 80% minimum
 
+ |
+| **SQL Context Leakage** | Zero
+
+ |

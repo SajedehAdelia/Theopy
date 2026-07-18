@@ -1,67 +1,127 @@
 ```yaml
-
-title: "STAKEHOLDER MAP"
-project: "Theopy – AI Assistant MVP Server"
+title: "STAKEHOLDERS & RACI MATRIX"
+project: "Theopy – AI Assistant MCP Server"
 author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
-period: "2025–2026"
+period: "2026"
 certificate: "RNCP39583 – Expert in Software Development"
 
 ```
 
-1- Theopy Developer / Project Owner (Adelia)
+# Stakeholder Map & RACI Matrix
 
-    Role: Implementer, decision-maker for technical choices. Primary responsible for delivery.
+## 1. Stakeholder Mapping
 
-    Interest: Deliver a working, well-documented assistant; demonstrate capability.
+**1. Sponsor / Management (Commanditaire)**
 
-2- Teepy Product Manager (Adelia)
+* **Role:** Project sponsor and executive direction.
 
-    Role: Product validation, high-level acceptance, API ownership.
 
-    Interest: Integration that preserves data safety and UX.
-
-3- End Users (Teepy users, Les tiere payant of KOZEA company)
-
-    Role: Consumers of the voice and AI assistant features.
-
-    Interest: Reliable, secure voice control that saves time and makes use much easier.
-
-4- Infrastructure / DevOps (Adelia)
-
-    Role: Deploy and maintain server (MPC server). Ensure continuous delivery/hosting.
-
-    Interest: Secure, observable, scalable systems.
-
-5- LLM / External API Providers (OpenAI, Whisper, TTS vendors)
-
-    Role: Provide models and services.
-
-    Interest: Stable API, predictable costs, usage quotas.
-
-6- QA / Testers (Ynov friends / beta users)
-
-    Role: Validate features, spot bugs, measure response latency.
-
-    Interest: A product that "just works" in real usage.
-
-7- Legal / Privacy (if needed later)
-
-    Role: Ensure compliance (GDPR, data retention, PII handling).
-
-    Interest: Minimise risk of data leaks or non-compliance.
+* **Interest:** Seeks to optimize internal processes and create an AI architecture that can be valued and pitched to future investors.
 
 
 
-### RACI matrix (core tasks — adapt as project grows)
+**2. End Users (Utilisateurs Finaux)**
+
+* **Role:** The back-office teams (e.g., accounting, billing) who consume the AI assistant features.
 
 
-| Task / Deliverable                      | Responsible     | Accountable                | Consulted                 | Informed      |
-| --------------------------------------- | --------------- | -------------------------- | ------------------------- | ------------- |
-| Define project scope & success criteria | Adelia          | Adelia                     | Ynov Pedagogy             | End users     |
-| Create project docs                     | Adelia          | Adelia                     | Adelia                    | Product Owner |
-| Repo & project board setup              | Adelia          | Adelia                     | Adelia                    | Product Owner |
-| Prototype: STT → LLM → Theopy API       | Adelia          | Adelia                     | DevOps, Ynov friends      | QA testers    |
-| Security & data handling design         | Adelia          | Product Owner(Adelia)      | DevOps, Ynov friends      | End users     |
-| Deployment & infra                      | Adelia          | DevOps                     | DevOps, Ynov friends      | Product Owner |
-| User acceptance testing                 | QA / Beta users | Product Owner(Adelia)      | DevOps, Ynov friends      | End users     |
+* **Interest:** Require rapid extraction of data without navigating complex interfaces to save time on repetitive tasks.
+
+
+
+**3. Technical Team (Équipe Technique / Développeurs)**
+
+* **Role:** Software engineers (Backend, Frontend, DevOps) responsible for building and integrating Theopy.
+
+
+* **Interest:** Demand a secure integration that does not disrupt or alter the legacy code of Teepy, maintaining a modular vision for future projects.
+
+
+
+**4. External API Providers (Google Gemini)**
+
+* **Role:** Provide the LLM infrastructure.
+* **Interest:** Stable API usage, predictable token consumption, and adherence to usage quotas.
+
+**5. Legal & Privacy (Référent juridique / confidentialité)**
+
+* **Role:** Ensure compliance with GDPR and medical data regulations.
+* **Interest:** Minimize the risk of data leaks, particularly concerning the transmission of data to external LLMs.
+
+---
+
+## 2. RACI Matrix (Répartition des tâches)
+
+This matrix defines the distribution of responsibilities across the project lifecycle.
+*(R = Responsible, A = Accountable, C = Consulted, I = Informed)*
+
+| Task / Deliverable | Responsible (R) | Accountable (A) | Consulted (C) | Informed (I) |
+| --- | --- | --- | --- | --- |
+| **Define project scope and success criteria** | Project manager
+
+ | Project manager
+
+ | Ynov Pedagogy
+
+ | End users (Utilisateurs finaux)
+
+ |
+| **Write project documentation** | Developer / Project manager
+
+ | Developer / Project manager
+
+ | Teepy Product Manager
+
+ | Product stakeholders
+
+ |
+| **Set up Git repository and project tracking board** | Back-end Developer
+
+ | Back-end Developer
+
+ | Infrastructure / DevOps
+
+ | Product stakeholders
+
+ |
+| **Develop the prototype: STT / LLM / Theopy API** | Back-end Developer
+
+ | Back-end Developer
+
+ | DevOps, Beta testers
+
+ | QA Team
+
+ |
+| **Design security and data management** | Back-end Developer
+
+ | Teepy Product Manager (Adelia)
+
+ | DevOps, Legal / Privacy referent
+
+ | End users (Utilisateurs finaux)
+
+ |
+| **Deployment and infrastructure** | Back-end Developer
+
+ | Infrastructure / DevOps
+
+ | Beta testers
+
+ | Teepy Product Manager
+
+ |
+| **Conduct User Acceptance Testing (UAT)** | QA / Beta users
+
+ | Teepy Product Manager (Adelia)
+
+ | DevOps, End users
+
+ | Project stakeholders
+
+ |
+
+```
+
+```

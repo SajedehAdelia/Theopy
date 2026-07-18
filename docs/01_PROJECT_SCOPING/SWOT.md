@@ -1,10 +1,58 @@
-##  SWOT Analysis for Theopy
+```yaml
+title: "SWOT ANALYSIS"
+project: "Theopy – AI Assistant MCP Server"
+author: "Adelia Fathipoursasansara"
+organisation: "Kozea"
+period: "2026"
+certificate: "RNCP39583 – Expert in Software Development"
 
-| Category          | Analysis                                                                                                                                                                                                                                                                                                                                                                                 |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Strengths**     | - Seamless integration with Teepy enhances user productivity. <br> - Supports both voice and text communication, improving accessibility. <br> - Modular, Python-based architecture with Flask ensures maintainability and scalability. <br> - Local/offline processing options improve privacy. <br> - Real-time conversational AI improves usability and adoption.                     |
-| **Weaknesses**    | - MVP may have limited NLU capabilities initially. <br> - Dependency on third-party STT/TTS engines (Whisper, gTTS) may introduce latency. <br> - Limited multi-language support at launch (mainly French). <br> - Requires constant API maintenance if Teepy backend changes.                                                                                                           |
-| **Opportunities** | - Growing demand for voice-assisted productivity tools in professional environments. <br> - Potential to extend to English and other languages, expanding the market. <br> - Use AI analytics to improve user behaviour insights in Teepy. <br> - Position Kozea as an innovator in AI-driven enterprise tools. <br> - Future integration with other Kozea services or third-party apps. |
-| **Threats**       | - Rapid evolution of AI assistants by competitors (Microsoft Copilot, ChatGPT plugins). <br> - Privacy and GDPR compliance risks with voice data. <br> - Latency or misinterpretation of commands could frustrate users. <br> - Technical debt if NLU or STT/TTS integration is not optimised. <br> - Market resistance to new interaction paradigms (users preferring traditional UI).  |
+```
 
+# SWOT Analysis for Theopy
 
+| Category | Analysis |
+| --- | --- |
+| **Strengths (Forces)** | - Robust and decoupled architecture.
+
+<br>
+
+<br>- Mastery of business complexity.
+
+<br>
+
+<br>- High network performance (via SSE).
+
+ |
+| **Weaknesses (Faiblesses)** | - Single human resource, leading to Key Person Risk.
+
+<br>
+
+<br>- Dependency on external AI APIs.
+
+<br>
+
+<br>- Complexity of the initial deployment.
+
+ |
+| **Opportunities (Opportunités)** | - Creation of a reusable technological asset (Theopy Agent) for other Kozea projects.
+
+<br>
+
+<br>- Massive productivity gains on repetitive back-office tasks.
+
+<br>
+
+<br>- Future integration with other Kozea services or third-party applications.
+
+ |
+| **Threats (Menaces)** | - Critical database vulnerability if the AI gains direct, unrestricted access.
+
+<br>
+
+<br>- AI "hallucinations" generating false financial data.
+
+ |
+
+```
+
+```

@@ -1,48 +1,76 @@
 ```yaml
-title: "SOURCES & WATCH STRATEGY"
-project: "Theopy – AI Assistant MVP Server"
+title: "SOURCES & TECHNICAL WATCH"
+project: "Theopy – AI Assistant MCP Server"
 author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
-period: "2025–2026"
+period: "2026"
 certificate: "RNCP39583 – Expert in Software Development"
+
 ```
 
-# Sources & Watch Strategy (Veille Technologique)
+# Sources & Technical Watch
 
-## 1. Documentation Sources
+## 1. Objectives of the Technical Watch
 
-### Core Technologies
-- **Python:** [docs.python.org](https://docs.python.org/3/) - Official reference.
-- **Flask:** [flask.palletsprojects.com](https://flask.palletsprojects.com/) - For API structure and patterns.
-- **SQLAlchemy:** [docs.sqlalchemy.org](https://docs.sqlalchemy.org/) - Database ORM best practices.
+To ensure the Theopy architecture remains scalable, secure, and aligned with industry standards, a continuous technical watch was established. The primary focus areas were AI integration protocols, asynchronous network communication between microservices, and secure tool-calling mechanisms for Large Language Models (LLMs).
 
-### AI & Speech
-- **OpenAI Whisper:** [github.com/openai/whisper](https://github.com/openai/whisper) - Model usage and updates.
-- **Vosk:** [alphacephei.com/vosk](https://alphacephei.com/vosk/) - Offline alternative research.
-- **Hugging Face:** [huggingface.co](https://huggingface.co/) - Exploring new models and datasets for French NLU.
+## 2. Methodology & Sources
 
-### Architecture & DevOps
-- **Docker:** [docs.docker.com](https://docs.docker.com/) - Containerisation best practices.
-- **GitHub Actions:** [docs.github.com/en/actions](https://docs.github.com/en/actions) - CI/CD workflow documentation.
-- **12-Factor App:** [12factor.net](https://12factor.net/) - Methodology for building SaaS apps.
+### Tools & Platforms
 
-## 2. Watch Strategy (Veille)
+* **Aggregators & Workflows:** Custom GitHub workflow boards, GitHub Releases, GitHub Changelogs, and Daily.dev.
 
-### Objectives
-- Stay updated on **LLM and STT advancements** (models get smaller and faster every month).
-- Monitor **security vulnerabilities** in Python dependencies.
-- Follow **Kozea internal updates** regarding Teepy API changes.
 
-### Tools & Channels
+* **Community Watch:** GitHub Trending (to monitor emerging SDKs) and Reddit communities (`r/Python`, `r/LocalLLaMA`).
 
-| Channel | Source | Frequency | Focus |
-|---------|--------|-----------|-------|
-| **Newsletters** | TLDR AI, Python Weekly | Weekly | General trends, new libraries |
-| **Social** | Twitter/X (AI influencers), LinkedIn | Daily | Quick news, demos of new tech |
-| **Code** | GitHub Trending (Python) | Weekly | Discovering new open-source tools |
-| **Communities** | Reddit r/LocalLLaMA, r/Python | Ad-hoc | Troubleshooting, hardware discussions |
-| **Security** | GitHub Dependabot | Real-time | Security patches for repo dependencies |
 
-### Recent Findings 
-- *Discovery:* **Distil-Whisper** offers 6x speedup over standard Whisper with minimal accuracy loss. -> *Action:* Added to technical roadmap for performance optimisation.
-- *Discovery:* **FastAPI** gaining market share over Flask. -> *Action:* Noted for potential future migration if async needs grow.
+
+### Official Documentation
+
+* **Anthropic:** As the original creators of the Model Context Protocol (MCP), their documentation was central to the architectural design.
+
+
+* **Google Cloud Developer Docs:** Used for implementing the `google-genai` SDK and ensuring optimal token consumption.
+
+
+
+### Newsletters & Media
+
+* **TLDR AI:** For daily summaries of AI advancements and new model releases.
+
+
+* **The Pragmatic Engineer:** For insights on system design, microservices, and backend engineering at scale.
+
+
+* **MIT Technology Review:** For high-level trends in AI compliance and accessibility.
+
+
+
+## 3. Key Findings & Impact on the Project
+
+The technological watch directly influenced the three most critical architectural decisions of the Theopy MVP:
+
+### A. The Model Context Protocol (MCP)
+
+* **Finding:** The industry is moving away from custom REST bridges for AI tools and towards standardized protocols.
+* **Impact:** We adopted the MCP to standardize the exposure of Python functions to the LLM. This makes Theopy a reusable "Hub" that can seamlessly connect with any future Kozea project without rewriting the bridging logic.
+
+
+
+### B. Server-Sent Events (SSE) Connectivity
+
+* **Finding:** Standard HTTP requests often timeout during long LLM inference or heavy database queries, while WebSockets introduce unnecessary bidirectional complexity.
+* **Impact:** We implemented SSE for unidirectional, lightweight communication. It is perfectly suited for asynchronous context bubbling between microservices, drastically reducing network overhead.
+
+
+
+### C. Strict Function Calling via Modern SDKs
+
+* **Finding:** Relying on prompt engineering alone to extract JSON from LLMs is error-prone and leads to hallucinations.
+* **Impact:** We utilized the latest Google Gemini SDKs (like Gemini 1.5) that natively support "Function Calling". This forces the AI to output strictly structured JSON tool calls instead of free-form conversational text, ensuring a 95%+ routing accuracy.
+
+
+
+```
+
+```

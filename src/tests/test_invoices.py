@@ -1,30 +1,54 @@
-# import pytest
-# from src.app import app
+import pytest
+from src.dispatcher import AgentDispatcher
 
-# @pytest.fixture
-# def client():
-#     app.config['TESTING'] = True
-#     with app.test_client() as client:
-#         yield client
 
-# def test_invoice_real_database_flow(client):
-#     payload = {"message": "Show me the invoices for Pharmacie de la Gare"}
-#     response = client.post('/ask', json=payload)
+@pytest.mark.asyncio
+async def test_fetch_invoices_list_gare():
+    """Test retrieving invoices filtered for Pharmacie de la Gare."""
+    dispatcher = AgentDispatcher()
+    await dispatcher.initialize()
 
-#     assert response.status_code == 200
+    result = await dispatcher.mcp_client.call_tool(
+        "fetch_all_invoices_list", {"customer_name": "Gare"}
+    )
+    assert "Invoices List:" in result
+    assert "Invoice ID: 101" in result
+    assert "Pharmacie de la Gare" in result
 
-#     data = response.get_json()
 
-#     assert data["action"] == "DISPLAY_DATA"
-#     assert data["intent"] == "get_invoice_summary"
+@pytest.mark.asyncio
+async def test_fetch_invoices_list_soleil():
+    """Test retrieving invoices filtered for Pharmacie du Soleil."""
+    dispatcher = AgentDispatcher()
+    await dispatcher.initialize()
 
-#     invoice_list = data["data"]["invoices"]
+    result = await dispatcher.mcp_client.call_tool(
+        "fetch_all_invoices_list", {"customer_name": "Soleil"}
+    )
+    assert "Invoice ID: 102" in result
+    assert "Pharmacie du Soleil" in result
+    assert "Gare" not in result
 
-#     available_dates = [inv['date'] for inv in invoice_list]
-#     assert "2019-02-01" in available_dates
-#     assert "2023-01-15" in available_dates
 
-#     invoice_2019 = next(inv for inv in invoice_list if inv["date"] == "2019-02-01")
-#     assert invoice_2019["total_with_taxes"] == "927.00"
+@pytest.mark.asyncio
+async def test_fetch_invoices_list_empty():
+    """Test safe handling when the AI searches for a non-existent pharmacy."""
+    dispatcher = AgentDispatcher()
+    await dispatcher.initialize()
 
-#     print("Logic Check: Summary dates and totals match the database state.")
+    result = await dispatcher.mcp_client.call_tool(
+        "fetch_all_invoices_list", {"customer_name": "Inconnue"}
+    )
+    assert "No invoices found for this criteria." in result
+
+
+@pytest.mark.asyncio
+async def test_mark_invoice_status():
+    """Test state mutation for paying an invoice."""
+    dispatcher = AgentDispatcher()
+    await dispatcher.initialize()
+
+    result_paid = await dispatcher.mcp_client.call_tool(
+        "fetch_mark_invoice_status", {"invoice_id": 101, "is_paid": True}
+    )
+    assert "Success: Invoice 101 has been marked as Paid." in result_paid
