@@ -15,8 +15,13 @@ class AgentDispatcher:
         self.brain = None
 
     async def initialize(self):
-        """Connect to the backend and initialize the Brain."""
+        """Reconnect the MCP client (done every turn - the SSE connection is
+        closed after each message) and create the Brain once. The brain is only
+        created the first time so its conversation history persists across turns."""
         await self.mcp_client.connect()
+
+        if self.brain is not None:
+            return
 
         if os.getenv("USE_LOCAL_LLM") == "1":
             from .ollama_client import OllamaBrain
@@ -31,8 +36,7 @@ class AgentDispatcher:
 
     async def handle_user_input(self, text: str) -> str:
         """Receives text from the Siri UI and returns the AI's spoken response."""
-        if not self.brain:
-            await self.initialize()
+        await self.initialize()
         try:
             logger.info("Processing user request...")
             final_answer = await self.brain.process_user_request(text)

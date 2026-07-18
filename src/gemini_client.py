@@ -3,6 +3,9 @@ import logging
 from google import genai
 from google.genai import types
 
+from src.response_guard import sanitize_final_answer
+from src.system_prompt import THEOPY_SYSTEM_INSTRUCTION
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,6 +20,8 @@ class GeminiBrain:
 
         self.client = genai.Client(api_key=api_key)
         self.model_id = os.getenv("GEMINI_MODEL_ID", "gemini-2.5-flash")
+        self.chat = None  # Created once on first message, then reused so the
+        # conversation history (previous turns) is preserved across messages.
 
     def _convert_mcp_to_gemini_tools(self, mcp_tools) -> list:
         """Converts MCP JSON Schemas into Gemini Function Declarations."""
@@ -35,23 +40,18 @@ class GeminiBrain:
     async def process_user_request(self, user_text: str) -> str:
         """The main Agent Loop: Reason, Act, Observe, Respond."""
 
-        mcp_tools = await self.mcp_client.get_available_tools()
-        gemini_tools = self._convert_mcp_to_gemini_tools(mcp_tools)
+        if self.chat is None:
+            mcp_tools = await self.mcp_client.get_available_tools()
+            gemini_tools = self._convert_mcp_to_gemini_tools(mcp_tools)
 
-        system_instruction = (
-            "You are Theopy, the intelligent AI voice assistant for the Teepy ERP system. "
-            "Your job is to help managers and operators manage their planning, invoices, and sessions. "
-            "Always use your tools to fetch real data before answering. "
-            "Be concise, professional, and friendly. Do not output raw JSON. "
-            "IMPORTANT: When returning lists of data (like invoices or sessions), "
-            "ALWAYS format the output as a beautiful Markdown table.  "
-        )
+            config = types.GenerateContentConfig(
+                system_instruction=THEOPY_SYSTEM_INSTRUCTION,
+                tools=gemini_tools,
+                temperature=0,
+            )
+            self.chat = self.client.chats.create(model=self.model_id, config=config)
 
-        config = types.GenerateContentConfig(
-            system_instruction=system_instruction, tools=gemini_tools
-        )
-
-        chat = self.client.chats.create(model=self.model_id, config=config)
+        chat = self.chat
         logger.info(f"User asked: {user_text}")
 
         response = chat.send_message(user_text)
@@ -81,4 +81,4 @@ class GeminiBrain:
                     )
                 )
 
-        return response.text
+        return sanitize_final_answer(response.text)

@@ -44,6 +44,7 @@ async def test_dispatcher_initialization_ollama(
 async def test_dispatcher_handle_user_input(MockClient, mock_env):
     """Test that the dispatcher correctly routes user text and cleans up connections."""
     mock_client_instance = MockClient.return_value
+    mock_client_instance.connect = AsyncMock()
     mock_client_instance.close = AsyncMock()
 
     mock_brain_instance = AsyncMock()
@@ -57,8 +58,32 @@ async def test_dispatcher_handle_user_input(MockClient, mock_env):
 
     result = await dispatcher.handle_user_input("Show me invoices.")
 
+    mock_client_instance.connect.assert_called_once()  # Reconnects every turn
     mock_brain_instance.process_user_request.assert_called_once_with(
         "Show me invoices."
     )
     mock_client_instance.close.assert_called_once()  # Ensure cleanup happened
     assert result == "Mocked AI response"
+
+
+@pytest.mark.asyncio
+@patch("src.dispatcher.TeepyMCPClient")
+@patch("src.gemini_client.GeminiBrain")
+async def test_dispatcher_reuses_brain_across_turns(
+    MockGeminiBrain, MockClient, mock_env
+):
+    """Test that the brain (and its conversation history) persists across multiple
+    turns, instead of being recreated on every message."""
+    mock_client_instance = MockClient.return_value
+    mock_client_instance.connect = AsyncMock()
+    mock_client_instance.close = AsyncMock()
+
+    dispatcher = AgentDispatcher()
+    await dispatcher.initialize()
+    first_brain = dispatcher.brain
+
+    await dispatcher.initialize()
+    second_brain = dispatcher.brain
+
+    assert first_brain is second_brain
+    MockGeminiBrain.assert_called_once()

@@ -1,5 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
+from src import history_store
+
 
 def test_health_endpoint(client):
     """Test the DevOps supervision endpoint."""
@@ -23,13 +25,16 @@ def test_ask_endpoint_missing_message(client):
     assert response.get_json() == {"error": "No message provided"}
 
 
-@patch("src.app.AgentDispatcher")
-def test_ask_endpoint_success(MockDispatcher, client):
-    """Test the successful routing of a user message to the AI Dispatcher."""
-    mock_instance = MockDispatcher.return_value
+@patch("src.app.dispatcher")
+def test_ask_endpoint_success(mock_dispatcher, client):
+    """Test the successful routing of a user message to the AI Dispatcher.
 
+    src.app now reuses a single module-level dispatcher (instead of creating a
+    fresh one per request) so its brain's conversation history persists across
+    messages - so we patch that instance directly, not the AgentDispatcher class.
+    """
     # Because app.py wraps the call in asyncio.run(), the mock MUST be an AsyncMock
-    mock_instance.handle_user_input = AsyncMock(
+    mock_dispatcher.handle_user_input = AsyncMock(
         return_value="Here is the table of sessions you requested."
     )
 
@@ -41,22 +46,42 @@ def test_ask_endpoint_success(MockDispatcher, client):
     assert response.get_json() == {
         "response": "Here is the table of sessions you requested."
     }
-    mock_instance.handle_user_input.assert_called_once_with(
+    mock_dispatcher.handle_user_input.assert_called_once_with(
         "Fetch sessions for Pharmacie de la gare"
     )
 
 
-@patch("src.app.AgentDispatcher")
-def test_ask_endpoint_server_error(MockDispatcher, client):
+@patch("src.app.dispatcher")
+def test_ask_endpoint_server_error(mock_dispatcher, client):
     """Test the 500 Internal Server Error fallback when the AI brain crashes."""
-    mock_instance = MockDispatcher.return_value
-
-    # Simulate a fatal crash inside the dispatcher or network bridge
-    mock_instance.handle_user_input.side_effect = Exception(
-        "Simulated connection crash"
+    mock_dispatcher.handle_user_input = AsyncMock(
+        side_effect=Exception("Simulated connection crash")
     )
 
     response = client.post("/ask", json={"message": "Trigger a crash"})
 
     assert response.status_code == 500
     assert response.get_json() == {"error": "I'm having trouble connecting right now."}
+
+
+def test_history_endpoint_empty_by_default(client):
+    """Test that /history returns an empty object when nothing was recorded."""
+    history_store.clear()
+    response = client.get("/history")
+    assert response.status_code == 200
+    assert response.get_json() == {}
+
+
+def test_history_endpoint_returns_grouped_domains(client):
+    """Test that /history exposes recorded tool calls grouped by business domain."""
+    history_store.clear()
+    history_store.record(
+        "fetch_all_invoices_list", {"customer_name": "Gare"}, "Invoices List: ..."
+    )
+
+    response = client.get("/history")
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "Factures" in data
+    assert data["Factures"][0]["tool_name"] == "fetch_all_invoices_list"

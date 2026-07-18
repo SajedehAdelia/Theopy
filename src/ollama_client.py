@@ -3,6 +3,9 @@ import json
 import logging
 from openai import OpenAI
 
+from src.response_guard import sanitize_final_answer
+from src.system_prompt import THEOPY_SYSTEM_INSTRUCTION
+
 logger = logging.getLogger(__name__)
 
 
@@ -16,6 +19,13 @@ class OllamaBrain:
             api_key="dummy-key-not-needed",
         )
         self.model_id = os.getenv("OLLAMA_MODEL", "llama3.1")
+        # Persisted across calls so the conversation history (previous turns)
+        # is preserved across messages, instead of resetting every time.
+        self.messages = [{"role": "system", "content": THEOPY_SYSTEM_INSTRUCTION}]
+        self.openai_tools = None
+        # Keep at most this many non-system messages, to bound token growth
+        # over a long-running conversation.
+        self.max_history_messages = 40
 
     def _convert_mcp_to_openai_tools(self, mcp_tools) -> list:
         """Converts MCP JSON Schemas into OpenAI/Ollama Function Declarations."""
@@ -35,29 +45,35 @@ class OllamaBrain:
             )
         return openai_tools
 
+    def _trim_history(self):
+        """Keep the system message plus only the most recent turns, so the
+        conversation doesn't grow unbounded over a long-running session."""
+        system_message = self.messages[0]
+        rest = self.messages[1:]
+        max_messages = self.max_history_messages
+        if len(rest) > max_messages:
+            rest = rest[-max_messages:]
+        self.messages = [system_message] + rest
+
     async def process_user_request(self, user_text: str) -> str:
         """The main Agent Loop using the Local LLM."""
 
-        mcp_tools = await self.mcp_client.get_available_tools()
-        openai_tools = self._convert_mcp_to_openai_tools(mcp_tools)
+        if self.openai_tools is None:
+            mcp_tools = await self.mcp_client.get_available_tools()
+            self.openai_tools = self._convert_mcp_to_openai_tools(mcp_tools)
 
-        system_instruction = (
-            "You are Theopy, the intelligent AI voice assistant for the Teepy ERP system. "
-            "Always use your tools to fetch real data before answering. "
-            "IMPORTANT: When returning lists of data, ALWAYS format the output as a Markdown table. "
-            "Do not output raw JSON to the user."
-        )
-
-        messages = [
-            {"role": "system", "content": system_instruction},
-            {"role": "user", "content": user_text},
-        ]
+        self.messages.append({"role": "user", "content": user_text})
+        self._trim_history()
+        messages = self.messages
 
         logger.info(f"User asked Local AI: {user_text}")
 
         # Initial request to the local model
         response = self.client.chat.completions.create(
-            model=self.model_id, messages=messages, tools=openai_tools
+            model=self.model_id,
+            messages=messages,
+            tools=self.openai_tools,
+            temperature=0,
         )
 
         response_message = response.choices[0].message
@@ -91,9 +107,12 @@ class OllamaBrain:
 
             # Send the results back to the local model so it can formulate a final answer
             response = self.client.chat.completions.create(
-                model=self.model_id, messages=messages, tools=openai_tools
+                model=self.model_id,
+                messages=messages,
+                tools=self.openai_tools,
+                temperature=0,
             )
             response_message = response.choices[0].message
             messages.append(response_message)
 
-        return response_message.content
+        return sanitize_final_answer(response_message.content)

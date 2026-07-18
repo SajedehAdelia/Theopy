@@ -18,6 +18,11 @@ services:
     
     volumes:
         - .:/app
+        # Dedicated Docker-managed volume for the 24h history DB. Kept out of the
+        # bind mount above on purpose: SQLite files on a host bind mount (especially
+        # under Docker Desktop) are prone to "attempt to write a readonly database"
+        # errors from host/container permission translation. A named volume avoids that.
+        - theopy_data:/app/src/data
 
     networks:
       - teepy_default
@@ -26,3 +31,6 @@ services:
 networks:
   teepy_default:
     external: true
+
+volumes:
+  theopy_data:

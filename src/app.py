@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 
 from src.dispatcher import AgentDispatcher
+from src import history_store
 
 load_dotenv()
 
@@ -52,7 +53,8 @@ def ask_theopy():
         return jsonify({"error": "No message provided"}), 400
 
     try:
-        dispatcher = AgentDispatcher()
+        # Reuse the module-level dispatcher (not a fresh one) so the brain's
+        # conversation history survives across messages in the same session.
         ai_response = asyncio.run(dispatcher.handle_user_input(user_input))
 
         return jsonify({"response": ai_response})
@@ -68,6 +70,12 @@ def ask_theopy():
 def health():
     """DevOps Supervision endpoint for Docker health checks."""
     return jsonify({"status": "healthy", "service": "Theopy-Agent"}), 200
+
+
+@app.route("/history", methods=["GET"])
+def get_history():
+    """Returns the last 24h of MCP tool calls, grouped by business domain."""
+    return jsonify(history_store.get_grouped()), 200
 
 
 if __name__ == "__main__":
