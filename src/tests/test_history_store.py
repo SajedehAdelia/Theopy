@@ -61,6 +61,30 @@ def test_empty_or_error_result_is_filed_under_autre_regardless_of_tool():
     assert len(grouped["Autre"]) == 3
 
 
+def test_record_stores_the_originating_question():
+    history_store.record(
+        "fetch_customer_company",
+        {"customer_name": "Marcel Dumont"},
+        "Customer: Pharmacie de la Gare | Holder: Marcel Dumont",
+        question="which company does Marcel Dumont belong to?",
+    )
+
+    grouped = history_store.get_grouped()
+
+    assert (
+        grouped["Autre"][0]["question"] == "which company does Marcel Dumont belong to?"
+    )
+
+
+def test_record_without_question_defaults_to_none():
+    """Backwards compatible: existing callers not passing question shouldn't break."""
+    history_store.record("fetch_all_invoices_list", {}, "Invoices List: ...")
+
+    grouped = history_store.get_grouped()
+
+    assert grouped["Factures"][0]["question"] is None
+
+
 def test_entries_older_than_24h_are_pruned(monkeypatch):
     fake_now = [1_000_000.0]
     monkeypatch.setattr(history_store.time, "time", lambda: fake_now[0])

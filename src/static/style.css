@@ -137,17 +137,19 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards; }
 
-/* --- 24H HISTORY SIDEBAR --- */
-#history-sidebar {
+/* --- SHARED SIDEBAR MECHANICS (history + settings) --- */
+.app-sidebar {
   width: 16rem;
   background-color: #ffffff;
   border-color: #c9c7d1;
   overflow: hidden;
   transition: width 0.2s ease; }
-  #history-sidebar.sidebar-collapsed {
+  .app-sidebar.sidebar-collapsed {
     width: 3rem; }
-    #history-sidebar.sidebar-collapsed #history-body,
-    #history-sidebar.sidebar-collapsed #sidebar-title {
+    .app-sidebar.sidebar-collapsed #history-body,
+    .app-sidebar.sidebar-collapsed #sidebar-title,
+    .app-sidebar.sidebar-collapsed #settings-body,
+    .app-sidebar.sidebar-collapsed #settings-title {
       display: none; }
 
 .sidebar-toggle-btn {
@@ -166,6 +168,26 @@ body {
   transition: background-color 0.2s ease; }
   .sidebar-toggle-btn:hover {
     background-color: #eae9fc; }
+
+.history-search-input {
+  width: 100%;
+  font-size: 0.78rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.6rem;
+  border: 1px solid #c9c7d1;
+  background-color: #f2f4f7;
+  color: #130836; }
+  .history-search-input:focus {
+    outline: none;
+    border-color: #5e39c6;
+    box-shadow: 0 0 0 3px #eae9fc; }
+
+.history-domain-tag {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #5e39c6; }
 
 .history-tab {
   background-color: #f2f4f7;
@@ -222,3 +244,140 @@ body {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical; }
+
+/* --- RECALLED QUESTION BUBBLE (faded, reads as "this was asked") --- */
+.recall-question-bubble {
+  background-color: #f2f4f7;
+  border: 1px dashed #c9c7d1;
+  color: #3b364a;
+  border-radius: 20px 20px 4px 20px;
+  padding: 1rem 1.5rem;
+  opacity: 0.85; }
+
+.recall-question-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 0.25rem; }
+
+/* --- SETTINGS SIDEBAR --- */
+.settings-section {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #c9c7d1; }
+  .settings-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0; }
+
+.settings-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #3b364a;
+  margin-bottom: 0.4rem; }
+
+.settings-placeholder {
+  font-size: 0.78rem;
+  color: #8b879d;
+  font-style: italic; }
+
+.settings-static-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5e39c6; }
+
+.settings-disabled-btn {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #8b879d;
+  background-color: #f2f4f7;
+  border: 1px solid #c9c7d1;
+  border-radius: 0.6rem;
+  padding: 0.5rem 0.9rem;
+  cursor: not-allowed; }
+
+/* --- ACCOUNT SECTION (settings sidebar, logged-in state) --- */
+.settings-account-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #130836; }
+
+.settings-account-role {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #5e39c6; }
+
+.settings-logout-btn {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #f76f5b;
+  border: none;
+  border-radius: 0.6rem;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s ease; }
+  .settings-logout-btn:hover {
+    background-color: #f54d34; }
+
+/* --- LOGIN PAGE --- */
+.login-card {
+  width: 100%;
+  max-width: 22rem;
+  background-color: #ffffff;
+  border: 1px solid #c9c7d1;
+  border-radius: 1rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  padding: 2.5rem 2rem; }
+
+.login-subtitle {
+  font-size: 0.8rem;
+  color: #8b879d;
+  text-align: center;
+  margin-bottom: 1.5rem; }
+
+.login-error {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #c1292e;
+  background-color: #fef3e5;
+  border-radius: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 1rem; }
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem; }
+
+.login-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #3b364a;
+  margin-top: 0.6rem; }
+
+.login-input {
+  border: 1px solid #c9c7d1;
+  background-color: #f2f4f7;
+  color: #130836;
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem; }
+  .login-input:focus {
+    outline: none;
+    border-color: #5e39c6;
+    box-shadow: 0 0 0 3px #eae9fc; }
+
+.login-submit {
+  margin-top: 1.5rem;
+  width: 100%;
+  height: auto;
+  padding: 0.85rem; }

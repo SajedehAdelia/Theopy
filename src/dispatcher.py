@@ -34,9 +34,17 @@ class AgentDispatcher:
             self.brain = GeminiBrain(self.mcp_client)
             print("🧠 Booting Theopy with CLOUD GEMINI Model")
 
-    async def handle_user_input(self, text: str) -> str:
-        """Receives text from the Siri UI and returns the AI's spoken response."""
+    async def handle_user_input(self, text: str, user_id: int, role: str) -> str:
+        """Receives text from the chat UI and returns the AI's spoken response.
+
+        user_id is the Teepy user_id from the logged-in Flask session - it is
+        carried on every MCP tool call so Teepy can enforce the real caller's
+        role, never trusted from anything the LLM itself reports. role is used
+        only to filter the tool list shown to the LLM (a UX nicety - see
+        src/role_access.py); Teepy's own server-side check is authoritative."""
         await self.initialize()
+        self.mcp_client.current_user_id = user_id
+        self.mcp_client.current_user_role = role
         try:
             logger.info("Processing user request...")
             final_answer = await self.brain.process_user_request(text)

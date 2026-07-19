@@ -57,6 +57,10 @@ def _connect() -> sqlite3.Connection:
         )
         """
     )
+    try:
+        conn.execute("ALTER TABLE history ADD COLUMN question TEXT")
+    except sqlite3.OperationalError:
+        pass  # Column already exists - safe to ignore (idempotent migration).
     conn.commit()
     return conn
 
@@ -70,16 +74,18 @@ def _prune_locked() -> None:
     _conn.commit()
 
 
-def record(tool_name: str, arguments: dict, result: str) -> None:
-    """Append a tool call to the rolling 24h history. Persisted to disk, thread-safe."""
+def record(tool_name: str, arguments: dict, result: str, question: str = None) -> None:
+    """Append a tool call to the rolling 24h history. Persisted to disk, thread-safe.
+    `question` is the original natural-language message that triggered this tool
+    call, so the UI can show "what you asked" alongside "what came back"."""
     domain = _infer_domain(tool_name, result)
     summary = (result or "")[:160]
 
     with _LOCK:
         _conn.execute(
-            "INSERT INTO history (domain, tool_name, arguments, summary, timestamp) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (domain, tool_name, json.dumps(arguments), summary, time.time()),
+            "INSERT INTO history (domain, tool_name, arguments, summary, timestamp, question) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (domain, tool_name, json.dumps(arguments), summary, time.time(), question),
         )
         _conn.commit()
         _prune_locked()
@@ -90,12 +96,20 @@ def get_grouped() -> dict:
     with _LOCK:
         _prune_locked()
         rows = _conn.execute(
-            "SELECT id, domain, tool_name, arguments, summary, timestamp "
+            "SELECT id, domain, tool_name, arguments, summary, timestamp, question "
             "FROM history ORDER BY id DESC"
         ).fetchall()
 
     grouped = {}
-    for entry_id, domain, tool_name, arguments_json, summary, timestamp in rows:
+    for (
+        entry_id,
+        domain,
+        tool_name,
+        arguments_json,
+        summary,
+        timestamp,
+        question,
+    ) in rows:
         grouped.setdefault(domain, []).append(
             {
                 "id": entry_id,
@@ -104,6 +118,7 @@ def get_grouped() -> dict:
                 "arguments": json.loads(arguments_json),
                 "summary": summary,
                 "timestamp": timestamp,
+                "question": question,
             }
         )
     return grouped
