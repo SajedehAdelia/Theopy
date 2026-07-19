@@ -56,9 +56,13 @@ async def test_dispatcher_handle_user_input(MockClient, mock_env):
     dispatcher.mcp_client = mock_client_instance
     dispatcher.brain = mock_brain_instance
 
-    result = await dispatcher.handle_user_input("Show me invoices.")
+    result = await dispatcher.handle_user_input(
+        "Show me invoices.", user_id=100, role="administrator"
+    )
 
     mock_client_instance.connect.assert_called_once()  # Reconnects every turn
+    assert mock_client_instance.current_user_id == 100
+    assert mock_client_instance.current_user_role == "administrator"
     mock_brain_instance.process_user_request.assert_called_once_with(
         "Show me invoices."
     )

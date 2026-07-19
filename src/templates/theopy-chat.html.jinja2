@@ -23,20 +23,15 @@
             <div id="settings-body" class="overflow-y-auto p-3 space-y-5 text-sm">
                 <section class="settings-section">
                     <h3 class="settings-section-title">Compte</h3>
-                    <p class="settings-placeholder">Authentification à venir. Aucun compte connecté pour le moment.</p>
-                </section>
-
-                <section class="settings-section">
-                    <h3 class="settings-section-title">Affichage</h3>
-                    <p class="settings-placeholder">Options d'affichage à venir.</p>
+                    <p class="settings-account-name">{{ user_name }}</p>
+                    <p class="settings-account-role">{{ user_role }}</p>
                 </section>
 
                 <section class="settings-section">
                     <h3 class="settings-section-title">Déconnexion</h3>
-                    <button type="button" class="settings-disabled-btn" disabled
-                            title="Disponible après l'implémentation de l'authentification">
+                    <a href="{{ url_for('logout') }}" class="settings-logout-btn">
                         Se déconnecter
-                    </button>
+                    </a>
                 </section>
 
                 <section class="settings-section">

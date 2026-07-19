@@ -7,6 +7,7 @@ from mcp import ClientSession
 from mcp.client.sse import sse_client
 
 from src import history_store
+from src.role_access import filter_tools_for_role
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,13 @@ class TeepyMCPClient:
         self.teepy_mcp_url = os.getenv("TEEPY_MCP_URL", "http://127.0.0.1:5001/sse")
         self._session = None
         self._exit_stack = None
+        # Set by AgentDispatcher before each turn, from the logged-in Flask
+        # session - never from the LLM. Carried on call_tool()'s `meta`, the
+        # only channel Teepy's role enforcement trusts as the real caller.
+        self.current_user_id = None
+        # Set once per session by AgentDispatcher, used only to filter the
+        # tool list shown to the LLM (UX nicety - see src/role_access.py).
+        self.current_user_role = None
         # Set by the brain at the start of each turn, so tool calls made during
         # that turn can be tagged with the question that triggered them.
         self.current_question = None
@@ -65,7 +73,7 @@ class TeepyMCPClient:
                     "inputSchema": tool.inputSchema,
                 }
             )
-        return formatted_tools
+        return filter_tools_for_role(formatted_tools, self.current_user_role)
 
     async def call_tool(self, tool_name: str, arguments: dict) -> str:
         """Execute a specific tool on the Teepy server and return the string result."""
@@ -73,7 +81,12 @@ class TeepyMCPClient:
             raise RuntimeError("MCP Client is not connected.")
 
         logger.info(f"Calling tool: {tool_name} with args: {arguments}")
-        result = await self._session.call_tool(tool_name, arguments)
+        meta = (
+            {"theopy_user_id": self.current_user_id}
+            if self.current_user_id is not None
+            else None
+        )
+        result = await self._session.call_tool(tool_name, arguments, meta=meta)
 
         # MCP results come back as a list of content blocks. We extract the text.
         if result.content and len(result.content) > 0:

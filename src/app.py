@@ -1,18 +1,83 @@
+import logging
 import os
 import sass
+import threading
 import traceback
 import asyncio
-from flask import Flask, request, jsonify, render_template
+from functools import wraps
+
+import requests
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    render_template,
+    redirect,
+    session,
+    url_for,
+)
 from dotenv import load_dotenv
 
+from src.auth import TeepyAuthError, authenticate_with_teepy
 from src.dispatcher import AgentDispatcher
 from src import history_store
 
 load_dotenv()
 
-app = Flask(__name__)
+logger = logging.getLogger(__name__)
 
-dispatcher = AgentDispatcher()
+app = Flask(__name__)
+# Falls back to a fixed dev value so test/CI environments (no .env file) don't
+# fail at import time - real deployments set SECRET_KEY via .env. Session
+# forgery isn't the primary defense boundary here anyway: every MCP tool call
+# is re-authorized against Teepy's own database on the server side.
+app.secret_key = os.getenv("SECRET_KEY", "dev-insecure-default-change-in-production")
+
+# One AgentDispatcher per logged-in Teepy user_id, not a single shared
+# instance - each dispatcher owns a brain with its own conversation history
+# and its own role-filtered tool list, so different users of this Theopy
+# instance never see each other's chat or a stale/wrong tool set.
+_dispatchers: dict[int, AgentDispatcher] = {}
+_dispatchers_lock = threading.Lock()
+
+
+def _get_dispatcher_for(user_id: int) -> AgentDispatcher:
+    with _dispatchers_lock:
+        if user_id not in _dispatchers:
+            _dispatchers[user_id] = AgentDispatcher()
+        return _dispatchers[user_id]
+
+
+def _discard_dispatcher_for(user_id: int) -> None:
+    """Drop a logged-out user's dispatcher, closing its MCP connection and
+    freeing its conversation history/tool cache."""
+    with _dispatchers_lock:
+        stale_dispatcher = _dispatchers.pop(user_id, None)
+
+    if stale_dispatcher is None:
+        return
+
+    try:
+        asyncio.run(stale_dispatcher.shutdown())
+    except Exception as e:
+        logger.warning(
+            f"Failed to cleanly shut down dispatcher for user_id={user_id}: {e}"
+        )
+
+
+def login_required(view):
+    """Gate a route behind a logged-in Theopy session. /ask is an AJAX
+    endpoint, so it gets a JSON 401 instead of a redirect."""
+
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if "user_id" not in session:
+            if request.path == "/ask":
+                return jsonify({"error": "Not authenticated"}), 401
+            return redirect(url_for("login"))
+        return view(*args, **kwargs)
+
+    return wrapped
 
 
 def compile_sass():
@@ -39,12 +104,74 @@ compile_sass()
 # --- ROUTES ---
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        if "user_id" in session:
+            return redirect(url_for("index"))
+        return render_template("login.html.jinja2")
+
+    login_value = request.form.get("login", "").strip()
+    password = request.form.get("password", "")
+
+    if not login_value or not password:
+        return (
+            render_template(
+                "login.html.jinja2",
+                error="Identifiant et mot de passe requis.",
+                login=login_value,
+            ),
+            400,
+        )
+
+    try:
+        profile = authenticate_with_teepy(login_value, password)
+    except TeepyAuthError as e:
+        return (
+            render_template("login.html.jinja2", error=str(e), login=login_value),
+            401,
+        )
+    except requests.RequestException:
+        return (
+            render_template(
+                "login.html.jinja2",
+                error="Impossible de contacter Teepy. Réessayez plus tard.",
+                login=login_value,
+            ),
+            503,
+        )
+
+    session["user_id"] = profile["user_id"]
+    session["login"] = profile["login"]
+    session["name"] = profile["name"]
+    session["role"] = profile["role"]
+
+    return redirect(url_for("index"))
+
+
+@app.route("/logout")
+def logout():
+    user_id = session.get("user_id")
+    session.clear()
+    if user_id is not None:
+        _discard_dispatcher_for(user_id)
+    return redirect(url_for("login"))
+
+
 @app.route("/")
+@login_required
 def index():
-    return render_template("theopy-chat.html.jinja2", title="Theopy AI")
+    return render_template(
+        "theopy-chat.html.jinja2",
+        title="Theopy AI",
+        user_name=session.get("name"),
+        user_login=session.get("login"),
+        user_role=session.get("role"),
+    )
 
 
 @app.route("/ask", methods=["POST"])
+@login_required
 def ask_theopy():
     """The bridge between the Frontend UI and the AI Dispatcher."""
     user_input = request.json.get("message")
@@ -53,9 +180,15 @@ def ask_theopy():
         return jsonify({"error": "No message provided"}), 400
 
     try:
-        # Reuse the module-level dispatcher (not a fresh one) so the brain's
-        # conversation history survives across messages in the same session.
-        ai_response = asyncio.run(dispatcher.handle_user_input(user_input))
+        # Reuse this user's own dispatcher (not a fresh one) so the brain's
+        # conversation history survives across messages in the same session,
+        # without leaking into any other logged-in user's dispatcher.
+        dispatcher = _get_dispatcher_for(session["user_id"])
+        ai_response = asyncio.run(
+            dispatcher.handle_user_input(
+                user_input, session["user_id"], session["role"]
+            )
+        )
 
         return jsonify({"response": ai_response})
 
@@ -73,6 +206,7 @@ def health():
 
 
 @app.route("/history", methods=["GET"])
+@login_required
 def get_history():
     """Returns the last 24h of MCP tool calls, grouped by business domain."""
     return jsonify(history_store.get_grouped()), 200

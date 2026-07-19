@@ -1,5 +1,5 @@
 import pytest
-from src.app import app
+from src.app import _dispatchers, app
 from unittest.mock import AsyncMock
 from src.tests.mocks.ai_scenarios import mock_call_tool
 
@@ -10,6 +10,28 @@ def client():
     app.config["TESTING"] = True
     with app.test_client() as client:
         yield client
+
+
+@pytest.fixture
+def logged_in_client(client):
+    """A test client with an already-logged-in Theopy session (administrator),
+    for routes gated behind login_required."""
+    with client.session_transaction() as flask_session:
+        flask_session["user_id"] = 100
+        flask_session["login"] = "slamotte"
+        flask_session["name"] = "Sylvie Lamotte"
+        flask_session["role"] = "administrator"
+    return client
+
+
+@pytest.fixture(autouse=True)
+def reset_dispatchers():
+    """_dispatchers is a module-level dict keyed by user_id, shared across
+    requests in the real app - clear it between tests so a mocked dispatcher
+    from one test is never reused (and returned stale) by the next."""
+    _dispatchers.clear()
+    yield
+    _dispatchers.clear()
 
 
 @pytest.fixture(autouse=True)

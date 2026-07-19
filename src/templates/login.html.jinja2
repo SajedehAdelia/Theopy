@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion | Theopy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ range(1, 10000) | random }}">
+</head>
+<body class="h-screen font-sans bg-gray-50 flex items-center justify-center">
+
+    <div class="login-card">
+        <h1 class="text-3xl font-black tracking-tight mb-1 text-center">
+            THEO<span class="highlight">PY</span>
+        </h1>
+        <p class="login-subtitle">Connectez-vous avec votre compte Teepy</p>
+
+        {% if error %}
+        <p class="login-error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" class="login-form">
+            <label for="login" class="login-label">Identifiant</label>
+            <input type="text" id="login" name="login" autocomplete="username" required
+                   class="login-input" value="{{ login or '' }}">
+
+            <label for="password" class="login-label">Mot de passe</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" required
+                   class="login-input">
+
+            <button type="submit" class="btn-send login-submit">Se connecter</button>
+        </form>
+    </div>
+
+</body>
+</html>
