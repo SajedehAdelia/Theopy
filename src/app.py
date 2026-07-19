@@ -208,8 +208,9 @@ def health():
 @app.route("/history", methods=["GET"])
 @login_required
 def get_history():
-    """Returns the last 24h of MCP tool calls, grouped by business domain."""
-    return jsonify(history_store.get_grouped()), 200
+    """Returns the current user's own last 24h of MCP tool calls, grouped by
+    business domain."""
+    return jsonify(history_store.get_grouped(session["user_id"])), 200
 
 
 if __name__ == "__main__":

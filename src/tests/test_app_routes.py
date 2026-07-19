@@ -98,7 +98,10 @@ def test_history_endpoint_returns_grouped_domains(logged_in_client):
     """Test that /history exposes recorded tool calls grouped by business domain."""
     history_store.clear()
     history_store.record(
-        "fetch_all_invoices_list", {"customer_name": "Gare"}, "Invoices List: ..."
+        "fetch_all_invoices_list",
+        {"customer_name": "Gare"},
+        "Invoices List: ...",
+        user_id=100,
     )
 
     response = logged_in_client.get("/history")
@@ -107,6 +110,20 @@ def test_history_endpoint_returns_grouped_domains(logged_in_client):
     data = response.get_json()
     assert "Factures" in data
     assert data["Factures"][0]["tool_name"] == "fetch_all_invoices_list"
+
+
+def test_history_endpoint_does_not_return_another_users_entries(logged_in_client):
+    """logged_in_client is user_id=100 - a call recorded under a different
+    user_id must never show up in this user's /history."""
+    history_store.clear()
+    history_store.record(
+        "fetch_all_invoices_list", {}, "someone else's invoice call", user_id=999
+    )
+
+    response = logged_in_client.get("/history")
+
+    assert response.status_code == 200
+    assert response.get_json() == {}
 
 
 def test_login_page_loads(client):
