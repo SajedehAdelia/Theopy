@@ -23,20 +23,20 @@ def test_index_endpoint(logged_in_client):
     response = logged_in_client.get("/")
     assert response.status_code == 200
     # Check that the Jinja template rendered our title
-    assert b"Theopy AI" in response.data
+    assert b"Theopy" in response.data
 
 
 def test_ask_endpoint_requires_login(client):
     response = client.post("/ask", json={"message": "Hello"})
     assert response.status_code == 401
-    assert response.get_json() == {"error": "Not authenticated"}
+    assert response.get_json() == {"error": "Non authentifié."}
 
 
 def test_ask_endpoint_missing_message(logged_in_client):
     """Test that the API correctly rejects empty requests with a 400 Bad Request."""
     response = logged_in_client.post("/ask", json={})
     assert response.status_code == 400
-    assert response.get_json() == {"error": "No message provided"}
+    assert response.get_json() == {"error": "Aucun message fourni."}
 
 
 @patch("src.app.AgentDispatcher")
@@ -77,7 +77,9 @@ def test_ask_endpoint_server_error(MockAgentDispatcher, logged_in_client):
     response = logged_in_client.post("/ask", json={"message": "Trigger a crash"})
 
     assert response.status_code == 500
-    assert response.get_json() == {"error": "I'm having trouble connecting right now."}
+    assert response.get_json() == {
+        "error": "Un problème de connexion est survenu. Veuillez réessayer."
+    }
 
 
 def test_history_endpoint_requires_login(client):
@@ -173,9 +175,34 @@ def test_login_invalid_credentials(mock_authenticate, client):
     response = client.post("/login", data={"login": "slamotte", "password": "wrong"})
 
     assert response.status_code == 401
-    assert "Invalid credentials" in response.get_data(as_text=True)
+    # Teepy's raw error is English - the login page must show the French
+    # translation instead, never the untranslated string.
+    assert "Identifiant ou mot de passe incorrect." in response.get_data(as_text=True)
+    assert "Invalid credentials" not in response.get_data(as_text=True)
     with client.session_transaction() as flask_session:
         assert "user_id" not in flask_session
+
+
+@patch("src.app.authenticate_with_teepy")
+def test_login_employee_role_rejected_shows_french_message(mock_authenticate, client):
+    mock_authenticate.side_effect = TeepyAuthError("This account cannot access Theopy.")
+
+    response = client.post("/login", data={"login": "mgarcia", "password": "test"})
+
+    assert response.status_code == 401
+    assert "Ce compte ne peut pas accéder à Theopy." in response.get_data(as_text=True)
+
+
+@patch("src.app.authenticate_with_teepy")
+def test_login_unmapped_teepy_error_passes_through_unchanged(mock_authenticate, client):
+    """Defense in depth: an error message Teepy might add later, not yet in
+    the translation table, should still reach the user rather than vanish."""
+    mock_authenticate.side_effect = TeepyAuthError("Some new error Teepy added")
+
+    response = client.post("/login", data={"login": "slamotte", "password": "test"})
+
+    assert response.status_code == 401
+    assert "Some new error Teepy added" in response.get_data(as_text=True)
 
 
 @patch("src.app.authenticate_with_teepy")

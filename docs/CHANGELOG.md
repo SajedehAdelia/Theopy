@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.5.0] - 2026-07-19
+### Authentication & Role-Based Access Control
+* **Security:** Introduced `POST /api/theopy/authenticate` on the Teepy side, validating credentials against real production accounts. Inactive accounts and the `employee` role (external pharmacy portal users) are rejected - only Kozea staff roles can use Theopy. No signup path exists in Theopy.
+* **Security:** Replaced blanket-admin MCP context with `_resolve_real_caller()`, which re-resolves the real calling user from the database on every single tool call, using an identity carried on the MCP protocol's `meta` field (never a tool argument, so the LLM can never see or influence it). No valid identity, unknown user, or inactive user results in denial, with no fallback to admin.
+* **Added:** `requires_role()` decorator applied to all 32 existing MCP tools, each tagged with its allowed roles per business domain (invoices, customers, plannings, sessions, reminders); invoice generation restricted to `administrator` only.
+* **Added:** `src/auth.py`, `/login` and `/logout` routes, and session gating on `/`, `/ask`, and `/history` in Theopy.
+* **Added:** Client-side tool-list filtering by role (`src/role_access.py`) as a UX layer - Teepy's server-side check remains the sole authority.
+* **Fixed:** Theopy previously reused a single global `AgentDispatcher` for every request regardless of who was logged in, leaking one user's conversation history and cached tool list into another user's session. Replaced with one dispatcher per logged-in user, torn down on logout.
+* **Changed:** Settings sidebar "Compte" section now shows the real logged-in name/role; "Déconnexion" is a working logout link instead of a disabled placeholder.
+* **Tests:** Added 26 tests on the Teepy side (auth endpoint + role enforcement, verified against a real seeded database via a genuine MCP client/server round trip) and 35+ new tests on the Theopy side (auth, session gating, dispatcher isolation, role filtering).
+
+## [1.4.0] - 2026-07-18
+### Frontend UX Overhaul
+* **Added:** Settings sidebar (left) with Compte, Affichage, Déconnexion, and connected-MCP-project sections.
+* **Changed:** Moved the 24h history sidebar from left to right, alongside the new settings sidebar.
+* **Added:** Search bar in the history sidebar - searches across every domain, not just the active tab, sorted most-recent-first.
+* **Added:** Recalling a history entry now shows the original question first (faded), then the answer, in the same order as a live exchange.
+* **Added:** `frontend-tests/` with a Node built-in test-runner suite for the search/selection logic (`history-logic.js`), wired into `make check` via a new `test-js` target.
+
 ## [1.3.0] - 2026-07-07
 ### RNCP Certification Dossier & Architecture Documentation
 * **Docs:** Completely overhauled `System_Architecture.md` and `requirements.md` to formally reflect the transition to the FastMCP "Hub & Spoke" model and Server-Sent Events (SSE) data streams.

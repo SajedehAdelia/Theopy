@@ -73,11 +73,25 @@ def login_required(view):
     def wrapped(*args, **kwargs):
         if "user_id" not in session:
             if request.path == "/ask":
-                return jsonify({"error": "Not authenticated"}), 401
+                return jsonify({"error": "Non authentifié."}), 401
             return redirect(url_for("login"))
         return view(*args, **kwargs)
 
     return wrapped
+
+
+# Teepy's /api/theopy/authenticate returns its error messages in English (see
+# teepy/routes/theopy_auth.py) - Theopy's UI is French-facing, so they're
+# translated here at the display boundary rather than in auth.py, keeping
+# TeepyAuthError's own contract stable and testable against Teepy's real text.
+_AUTH_ERROR_TRANSLATIONS = {
+    "Invalid credentials": "Identifiant ou mot de passe incorrect.",
+    "This account cannot access Theopy.": "Ce compte ne peut pas accéder à Theopy.",
+}
+
+
+def _translate_auth_error(message: str) -> str:
+    return _AUTH_ERROR_TRANSLATIONS.get(message, message)
 
 
 def compile_sass():
@@ -128,7 +142,11 @@ def login():
         profile = authenticate_with_teepy(login_value, password)
     except TeepyAuthError as e:
         return (
-            render_template("login.html.jinja2", error=str(e), login=login_value),
+            render_template(
+                "login.html.jinja2",
+                error=_translate_auth_error(str(e)),
+                login=login_value,
+            ),
             401,
         )
     except requests.RequestException:
@@ -163,7 +181,7 @@ def logout():
 def index():
     return render_template(
         "theopy-chat.html.jinja2",
-        title="Theopy AI",
+        title="Theopy",
         user_name=session.get("name"),
         user_login=session.get("login"),
         user_role=session.get("role"),
@@ -177,7 +195,7 @@ def ask_theopy():
     user_input = request.json.get("message")
 
     if not user_input:
-        return jsonify({"error": "No message provided"}), 400
+        return jsonify({"error": "Aucun message fourni."}), 400
 
     try:
         # Reuse this user's own dispatcher (not a fresh one) so the brain's
@@ -196,7 +214,12 @@ def ask_theopy():
         print("\n--- THEOPY CRASH REPORT ---")
         traceback.print_exc()
         print("---------------------------\n")
-        return jsonify({"error": "I'm having trouble connecting right now."}), 500
+        return (
+            jsonify(
+                {"error": "Un problème de connexion est survenu. Veuillez réessayer."}
+            ),
+            500,
+        )
 
 
 @app.route("/health", methods=["GET"])
