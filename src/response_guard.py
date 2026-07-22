@@ -4,9 +4,9 @@ import re
 logger = logging.getLogger(__name__)
 
 CLARIFICATION_FALLBACK = (
-    "I couldn't map that request to a specific action. Could you be more "
-    "specific — for example, which customer, date range, or type of data "
-    "you're looking for?"
+    "Je n'ai pas pu associer cette demande à une action précise. Pouvez-vous "
+    "préciser — par exemple le client, la période, ou le type de données "
+    "recherché ?"
 )
 
 # Every real MCP tool is named fetch_* or trigger_* (see mcp_server.py / ai_scenarios.py).
