@@ -9,6 +9,7 @@ help:
 	@echo "Theopy Project Management Commands:"
 	@echo "  ENVIRONMENT"
 	@echo "    make install              - Install dependencies on local host"
+	@echo "    make upgrade              - Rebuild with the current requirements.txt, restart, and lint"
 	@echo "    make docker-up            - Build and start the containers"
 	@echo "    make docker-down          - Stop containers"
 	@echo "    make docker-clean         - Remove all containers, images, and volumes"
@@ -35,6 +36,14 @@ install:
 docker-up:
 	@echo "Starting system containers..."
 	$(DOCKER_COMPOSE) up --build -d
+
+upgrade:
+	@echo "Rebuilding image against the current requirements.txt..."
+	$(DOCKER_COMPOSE) build
+	@echo "Restarting containers with the upgraded image..."
+	$(DOCKER_COMPOSE) up -d
+	@echo "Linting to confirm the upgrade didn't break style compliance..."
+	$(MAKE) lint-flake8
 
 docker-down:
 	@echo "Stopping system containers..."
