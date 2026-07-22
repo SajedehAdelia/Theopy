@@ -141,6 +141,9 @@ def login():
     try:
         profile = authenticate_with_teepy(login_value, password)
     except TeepyAuthError as e:
+        # Log failed auth attempts so they're reviewable, without
+        # ever logging the password itself.
+        logger.warning(f"Échec de la tentative de connexion={login_value!r}: {e}")
         return (
             render_template(
                 "login.html.jinja2",
@@ -149,7 +152,8 @@ def login():
             ),
             401,
         )
-    except requests.RequestException:
+    except requests.RequestException as e:
+        logger.warning(f"Échec de la tentative de connexion, Teepy indisponible: {e}")
         return (
             render_template(
                 "login.html.jinja2",
@@ -163,6 +167,11 @@ def login():
     session["login"] = profile["login"]
     session["name"] = profile["name"]
     session["role"] = profile["role"]
+
+    logger.info(
+        f"Utilisateur connecté: user_id={profile['user_id']} login={profile['login']!r} "
+        f"role={profile['role']!r}"
+    )
 
     return redirect(url_for("index"))
 
@@ -236,6 +245,13 @@ def get_history():
     return jsonify(history_store.get_grouped(session["user_id"])), 200
 
 
+def _debug_mode_enabled() -> bool:
+    """Debug mode (interactive debugger + full stack traces on
+    error) must default OFF - opt in locally via FLASK_DEBUG=1 in .env,
+    never in a real deployment."""
+    return os.getenv("FLASK_DEBUG", "0") == "1"
+
+
 if __name__ == "__main__":
     # Running on 0.0.0.0 is mandatory for Docker access
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=_debug_mode_enabled())

@@ -228,9 +228,6 @@ def test_logout_clears_session(logged_in_client):
 
 @patch("src.app.AgentDispatcher")
 def test_logout_discards_dispatcher(MockAgentDispatcher, logged_in_client):
-    """Logging out must free the per-user dispatcher (closing its MCP
-    connection and dropping conversation history), not leave it cached under
-    that user_id for whoever logs in next."""
     from src.app import _dispatchers
 
     mock_dispatcher = MockAgentDispatcher.return_value
@@ -244,3 +241,54 @@ def test_logout_discards_dispatcher(MockAgentDispatcher, logged_in_client):
 
     assert 100 not in _dispatchers
     mock_dispatcher.shutdown.assert_called_once()
+
+
+def test_debug_mode_defaults_to_off(monkeypatch):
+    from src.app import _debug_mode_enabled
+
+    monkeypatch.delenv("FLASK_DEBUG", raising=False)
+    assert _debug_mode_enabled() is False
+
+
+def test_debug_mode_can_be_enabled_via_env_var(monkeypatch):
+    from src.app import _debug_mode_enabled
+
+    monkeypatch.setenv("FLASK_DEBUG", "1")
+    assert _debug_mode_enabled() is True
+
+
+@patch("src.app.authenticate_with_teepy")
+def test_login_success_is_logged(mock_authenticate, client, caplog):
+    mock_authenticate.return_value = {
+        "user_id": 100,
+        "login": "slamotte",
+        "name": "Sylvie Lamotte",
+        "role": "administrator",
+    }
+
+    with caplog.at_level("INFO"):
+        client.post("/login", data={"login": "slamotte", "password": "test"})
+
+    assert any(
+        "Utilisateur connecté" in record.message and "slamotte" in record.message
+        for record in caplog.records
+    )
+
+
+@patch("src.app.authenticate_with_teepy")
+def test_login_failure_is_logged_without_the_password(
+    mock_authenticate, client, caplog
+):
+    mock_authenticate.side_effect = TeepyAuthError("Invalid credentials")
+
+    with caplog.at_level("WARNING"):
+        client.post(
+            "/login", data={"login": "slamotte", "password": "super-secret-value"}
+        )
+
+    warning_messages = [record.message for record in caplog.records]
+    assert any(
+        "Échec de la tentative de connexion" in msg and "slamotte" in msg
+        for msg in warning_messages
+    )
+    assert not any("super-secret-value" in msg for msg in warning_messages)
