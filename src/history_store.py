@@ -61,6 +61,10 @@ def _connect() -> sqlite3.Connection:
         conn.execute("ALTER TABLE history ADD COLUMN question TEXT")
     except sqlite3.OperationalError:
         pass  # Column already exists - safe to ignore (idempotent migration).
+    try:
+        conn.execute("ALTER TABLE history ADD COLUMN user_id INTEGER")
+    except sqlite3.OperationalError:
+        pass  # Column already exists - safe to ignore (idempotent migration).
     conn.commit()
     return conn
 
@@ -74,30 +78,51 @@ def _prune_locked() -> None:
     _conn.commit()
 
 
-def record(tool_name: str, arguments: dict, result: str, question: str = None) -> None:
+def record(
+    tool_name: str,
+    arguments: dict,
+    result: str,
+    question: str = None,
+    user_id: int = None,
+) -> None:
     """Append a tool call to the rolling 24h history. Persisted to disk, thread-safe.
     `question` is the original natural-language message that triggered this tool
-    call, so the UI can show "what you asked" alongside "what came back"."""
+    call, so the UI can show "what you asked" alongside "what came back". `user_id`
+    is the logged-in Theopy user this call belongs to - get_grouped() only ever
+    returns a caller's own entries, so different users never see each other's
+    history."""
     domain = _infer_domain(tool_name, result)
     summary = (result or "")[:160]
 
     with _LOCK:
         _conn.execute(
-            "INSERT INTO history (domain, tool_name, arguments, summary, timestamp, question) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (domain, tool_name, json.dumps(arguments), summary, time.time(), question),
+            "INSERT INTO history (domain, tool_name, arguments, summary, timestamp, question, user_id) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (
+                domain,
+                tool_name,
+                json.dumps(arguments),
+                summary,
+                time.time(),
+                question,
+                user_id,
+            ),
         )
         _conn.commit()
         _prune_locked()
 
 
-def get_grouped() -> dict:
-    """Return history entries grouped by domain, most recent first, pruned to 24h."""
+def get_grouped(user_id: int) -> dict:
+    """Return this user's own history entries grouped by domain, most recent
+    first, pruned to 24h. Entries recorded before user_id existed (NULL) are
+    never matched by the `= ?` comparison, so they're excluded for everyone
+    rather than attributed to the wrong person."""
     with _LOCK:
         _prune_locked()
         rows = _conn.execute(
             "SELECT id, domain, tool_name, arguments, summary, timestamp, question "
-            "FROM history ORDER BY id DESC"
+            "FROM history WHERE user_id = ? ORDER BY id DESC",
+            (user_id,),
         ).fetchall()
 
     grouped = {}

@@ -23,20 +23,20 @@ def test_index_endpoint(logged_in_client):
     response = logged_in_client.get("/")
     assert response.status_code == 200
     # Check that the Jinja template rendered our title
-    assert b"Theopy AI" in response.data
+    assert b"Theopy" in response.data
 
 
 def test_ask_endpoint_requires_login(client):
     response = client.post("/ask", json={"message": "Hello"})
     assert response.status_code == 401
-    assert response.get_json() == {"error": "Not authenticated"}
+    assert response.get_json() == {"error": "Non authentifié."}
 
 
 def test_ask_endpoint_missing_message(logged_in_client):
     """Test that the API correctly rejects empty requests with a 400 Bad Request."""
     response = logged_in_client.post("/ask", json={})
     assert response.status_code == 400
-    assert response.get_json() == {"error": "No message provided"}
+    assert response.get_json() == {"error": "Aucun message fourni."}
 
 
 @patch("src.app.AgentDispatcher")
@@ -77,7 +77,9 @@ def test_ask_endpoint_server_error(MockAgentDispatcher, logged_in_client):
     response = logged_in_client.post("/ask", json={"message": "Trigger a crash"})
 
     assert response.status_code == 500
-    assert response.get_json() == {"error": "I'm having trouble connecting right now."}
+    assert response.get_json() == {
+        "error": "Un problème de connexion est survenu. Veuillez réessayer."
+    }
 
 
 def test_history_endpoint_requires_login(client):
@@ -98,7 +100,10 @@ def test_history_endpoint_returns_grouped_domains(logged_in_client):
     """Test that /history exposes recorded tool calls grouped by business domain."""
     history_store.clear()
     history_store.record(
-        "fetch_all_invoices_list", {"customer_name": "Gare"}, "Invoices List: ..."
+        "fetch_all_invoices_list",
+        {"customer_name": "Gare"},
+        "Invoices List: ...",
+        user_id=100,
     )
 
     response = logged_in_client.get("/history")
@@ -107,6 +112,20 @@ def test_history_endpoint_returns_grouped_domains(logged_in_client):
     data = response.get_json()
     assert "Factures" in data
     assert data["Factures"][0]["tool_name"] == "fetch_all_invoices_list"
+
+
+def test_history_endpoint_does_not_return_another_users_entries(logged_in_client):
+    """logged_in_client is user_id=100 - a call recorded under a different
+    user_id must never show up in this user's /history."""
+    history_store.clear()
+    history_store.record(
+        "fetch_all_invoices_list", {}, "someone else's invoice call", user_id=999
+    )
+
+    response = logged_in_client.get("/history")
+
+    assert response.status_code == 200
+    assert response.get_json() == {}
 
 
 def test_login_page_loads(client):
@@ -156,9 +175,34 @@ def test_login_invalid_credentials(mock_authenticate, client):
     response = client.post("/login", data={"login": "slamotte", "password": "wrong"})
 
     assert response.status_code == 401
-    assert "Invalid credentials" in response.get_data(as_text=True)
+    # Teepy's raw error is English - the login page must show the French
+    # translation instead, never the untranslated string.
+    assert "Identifiant ou mot de passe incorrect." in response.get_data(as_text=True)
+    assert "Invalid credentials" not in response.get_data(as_text=True)
     with client.session_transaction() as flask_session:
         assert "user_id" not in flask_session
+
+
+@patch("src.app.authenticate_with_teepy")
+def test_login_employee_role_rejected_shows_french_message(mock_authenticate, client):
+    mock_authenticate.side_effect = TeepyAuthError("This account cannot access Theopy.")
+
+    response = client.post("/login", data={"login": "mgarcia", "password": "test"})
+
+    assert response.status_code == 401
+    assert "Ce compte ne peut pas accéder à Theopy." in response.get_data(as_text=True)
+
+
+@patch("src.app.authenticate_with_teepy")
+def test_login_unmapped_teepy_error_passes_through_unchanged(mock_authenticate, client):
+    """Defense in depth: an error message Teepy might add later, not yet in
+    the translation table, should still reach the user rather than vanish."""
+    mock_authenticate.side_effect = TeepyAuthError("Some new error Teepy added")
+
+    response = client.post("/login", data={"login": "slamotte", "password": "test"})
+
+    assert response.status_code == 401
+    assert "Some new error Teepy added" in response.get_data(as_text=True)
 
 
 @patch("src.app.authenticate_with_teepy")
@@ -184,9 +228,6 @@ def test_logout_clears_session(logged_in_client):
 
 @patch("src.app.AgentDispatcher")
 def test_logout_discards_dispatcher(MockAgentDispatcher, logged_in_client):
-    """Logging out must free the per-user dispatcher (closing its MCP
-    connection and dropping conversation history), not leave it cached under
-    that user_id for whoever logs in next."""
     from src.app import _dispatchers
 
     mock_dispatcher = MockAgentDispatcher.return_value
@@ -200,3 +241,54 @@ def test_logout_discards_dispatcher(MockAgentDispatcher, logged_in_client):
 
     assert 100 not in _dispatchers
     mock_dispatcher.shutdown.assert_called_once()
+
+
+def test_debug_mode_defaults_to_off(monkeypatch):
+    from src.app import _debug_mode_enabled
+
+    monkeypatch.delenv("FLASK_DEBUG", raising=False)
+    assert _debug_mode_enabled() is False
+
+
+def test_debug_mode_can_be_enabled_via_env_var(monkeypatch):
+    from src.app import _debug_mode_enabled
+
+    monkeypatch.setenv("FLASK_DEBUG", "1")
+    assert _debug_mode_enabled() is True
+
+
+@patch("src.app.authenticate_with_teepy")
+def test_login_success_is_logged(mock_authenticate, client, caplog):
+    mock_authenticate.return_value = {
+        "user_id": 100,
+        "login": "slamotte",
+        "name": "Sylvie Lamotte",
+        "role": "administrator",
+    }
+
+    with caplog.at_level("INFO"):
+        client.post("/login", data={"login": "slamotte", "password": "test"})
+
+    assert any(
+        "Utilisateur connecté" in record.message and "slamotte" in record.message
+        for record in caplog.records
+    )
+
+
+@patch("src.app.authenticate_with_teepy")
+def test_login_failure_is_logged_without_the_password(
+    mock_authenticate, client, caplog
+):
+    mock_authenticate.side_effect = TeepyAuthError("Invalid credentials")
+
+    with caplog.at_level("WARNING"):
+        client.post(
+            "/login", data={"login": "slamotte", "password": "super-secret-value"}
+        )
+
+    warning_messages = [record.message for record in caplog.records]
+    assert any(
+        "Échec de la tentative de connexion" in msg and "slamotte" in msg
+        for msg in warning_messages
+    )
+    assert not any("super-secret-value" in msg for msg in warning_messages)

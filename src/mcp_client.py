@@ -96,7 +96,11 @@ class TeepyMCPClient:
 
         try:
             history_store.record(
-                tool_name, arguments, text, question=self.current_question
+                tool_name,
+                arguments,
+                text,
+                question=self.current_question,
+                user_id=self.current_user_id,
             )
         except Exception as e:
             # History logging is a convenience side-effect - it must never break

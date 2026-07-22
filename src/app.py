@@ -73,11 +73,25 @@ def login_required(view):
     def wrapped(*args, **kwargs):
         if "user_id" not in session:
             if request.path == "/ask":
-                return jsonify({"error": "Not authenticated"}), 401
+                return jsonify({"error": "Non authentifié."}), 401
             return redirect(url_for("login"))
         return view(*args, **kwargs)
 
     return wrapped
+
+
+# Teepy's /api/theopy/authenticate returns its error messages in English (see
+# teepy/routes/theopy_auth.py) - Theopy's UI is French-facing, so they're
+# translated here at the display boundary rather than in auth.py, keeping
+# TeepyAuthError's own contract stable and testable against Teepy's real text.
+_AUTH_ERROR_TRANSLATIONS = {
+    "Invalid credentials": "Identifiant ou mot de passe incorrect.",
+    "This account cannot access Theopy.": "Ce compte ne peut pas accéder à Theopy.",
+}
+
+
+def _translate_auth_error(message: str) -> str:
+    return _AUTH_ERROR_TRANSLATIONS.get(message, message)
 
 
 def compile_sass():
@@ -127,11 +141,19 @@ def login():
     try:
         profile = authenticate_with_teepy(login_value, password)
     except TeepyAuthError as e:
+        # Log failed auth attempts so they're reviewable, without
+        # ever logging the password itself.
+        logger.warning(f"Échec de la tentative de connexion={login_value!r}: {e}")
         return (
-            render_template("login.html.jinja2", error=str(e), login=login_value),
+            render_template(
+                "login.html.jinja2",
+                error=_translate_auth_error(str(e)),
+                login=login_value,
+            ),
             401,
         )
-    except requests.RequestException:
+    except requests.RequestException as e:
+        logger.warning(f"Échec de la tentative de connexion, Teepy indisponible: {e}")
         return (
             render_template(
                 "login.html.jinja2",
@@ -145,6 +167,11 @@ def login():
     session["login"] = profile["login"]
     session["name"] = profile["name"]
     session["role"] = profile["role"]
+
+    logger.info(
+        f"Utilisateur connecté: user_id={profile['user_id']} login={profile['login']!r} "
+        f"role={profile['role']!r}"
+    )
 
     return redirect(url_for("index"))
 
@@ -163,7 +190,7 @@ def logout():
 def index():
     return render_template(
         "theopy-chat.html.jinja2",
-        title="Theopy AI",
+        title="Theopy",
         user_name=session.get("name"),
         user_login=session.get("login"),
         user_role=session.get("role"),
@@ -177,7 +204,7 @@ def ask_theopy():
     user_input = request.json.get("message")
 
     if not user_input:
-        return jsonify({"error": "No message provided"}), 400
+        return jsonify({"error": "Aucun message fourni."}), 400
 
     try:
         # Reuse this user's own dispatcher (not a fresh one) so the brain's
@@ -196,7 +223,12 @@ def ask_theopy():
         print("\n--- THEOPY CRASH REPORT ---")
         traceback.print_exc()
         print("---------------------------\n")
-        return jsonify({"error": "I'm having trouble connecting right now."}), 500
+        return (
+            jsonify(
+                {"error": "Un problème de connexion est survenu. Veuillez réessayer."}
+            ),
+            500,
+        )
 
 
 @app.route("/health", methods=["GET"])
@@ -208,10 +240,18 @@ def health():
 @app.route("/history", methods=["GET"])
 @login_required
 def get_history():
-    """Returns the last 24h of MCP tool calls, grouped by business domain."""
-    return jsonify(history_store.get_grouped()), 200
+    """Returns the current user's own last 24h of MCP tool calls, grouped by
+    business domain."""
+    return jsonify(history_store.get_grouped(session["user_id"])), 200
+
+
+def _debug_mode_enabled() -> bool:
+    """Debug mode (interactive debugger + full stack traces on
+    error) must default OFF - opt in locally via FLASK_DEBUG=1 in .env,
+    never in a real deployment."""
+    return os.getenv("FLASK_DEBUG", "0") == "1"
 
 
 if __name__ == "__main__":
     # Running on 0.0.0.0 is mandatory for Docker access
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=_debug_mode_enabled())
