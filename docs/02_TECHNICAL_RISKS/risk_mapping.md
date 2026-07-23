@@ -79,6 +79,13 @@ Based on the architectural audit, the following specific risks have been identif
  | Lock SDK versions via `requirements.txt` and monitor Google Cloud developer announcements.
 
  |
+| **Security: Role/Identity Desync** | Theopy's client-side role map (`src/role_access.py`) drifts out of sync with Teepy's server-side `requires_role()` tool list, showing a tool that gets denied or hiding one that would have been allowed. | 🟡 Medium
+
+ | 🔵 Low
+
+ | Documented as a UX layer only, never a security boundary — Teepy's server-side `requires_role()` re-check remains the sole authority regardless of client-side drift.
+
+ |
 
 ---
 
@@ -100,7 +107,7 @@ To validate the architecture, these specific indicators are monitored:
  |
 | **Software Integrity** | Unit Test Coverage
 
- | Pytest / CI Pipeline | < 80% coverage
+ | Pytest / CI Pipeline | < 80% coverage (measured 2026-07-23: 75% business logic / 89% incl. test files — see `System_Architecture.md` for the per-module breakdown)
 
  |
 | **Security** | SQL Context Leakage

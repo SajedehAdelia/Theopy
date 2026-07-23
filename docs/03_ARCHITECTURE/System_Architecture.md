@@ -71,15 +71,15 @@ User
 
 
 
-### 3. Intelligence Layer (Google Gemini API)
+### 3. Intelligence Layer (Gemini / Ollama — dual brain)
 
-* **Role:** The external Large Language Model (LLM) engine.
-
-
-* **Tech Stack:** `google-genai` SDK.
+* **Role:** The LLM reasoning engine. Two interchangeable brains are supported: Google Gemini (cloud, default) and Ollama (`llama3.1`, local, cost-free).
 
 
-* **Responsibility:** Performs strict "Function Calling". It translates the natural language prompt into a structured JSON tool call (e.g., triggering `agent_invoices_summary`). It later synthesizes the raw database results into a human-readable reply.
+* **Tech Stack:** `google-genai` SDK for Gemini; `OllamaBrain` talks to a local Ollama server through an OpenAI-compatible endpoint (`http://host.docker.internal:11434/v1`).
+
+
+* **Responsibility:** Performs strict "Function Calling". It translates the natural language prompt into a structured JSON tool call (e.g., triggering `agent_invoices_summary`). It later synthesizes the raw database results into a human-readable reply. The `USE_LOCAL_LLM` environment variable toggles which brain `dispatcher.py` instantiates, with no change required to the routing logic or downstream components.
 
 
 
@@ -104,6 +104,18 @@ User
 
 
 * **Responsibility:** Ensures all queries are parameterized and safe. The AI never has direct SQL generation access, eliminating context leakage risks.
+
+
+
+### 6. Authentication & Access Control (RBAC)
+
+* **Role:** Gates every user session and every MCP tool call behind a real identity.
+
+
+* **Tech Stack:** `src/auth.py` and `src/role_access.py` on the Theopy side; `requires_role()` and `_resolve_real_caller()` on the Teepy side (sole authority).
+
+
+* **Responsibility:** `POST /api/theopy/authenticate` validates credentials against real Teepy production accounts; inactive accounts and the `employee` role are rejected, with no signup path in Theopy. Every MCP tool call carries the caller's real identity on the protocol's `meta` field — never a tool argument, so the LLM can neither see nor influence it. Teepy re-resolves that identity from the database on every single call and denies by default, with no fallback to an administrator profile. Theopy's `role_access.py` mirrors the same role map client-side as a UX layer only.
 
 
 
@@ -161,6 +173,12 @@ The system adheres to formal digital standards to ensure inclusivity:
 | **Vendor Lock-in** | Business intelligence remains strictly in Teepy. Theopy acts only as an interchangeable router.
 
  |
+| **Unauthorized MCP Tool Access** | Deny-by-default `requires_role()` on every Teepy tool, plus real-identity re-resolution via `_resolve_real_caller()` on the `meta` field (never LLM-visible). `role_access.py` mirrors this client-side as UX only.
+
+ |
+| **Weak / Stale Credentials** | Real authentication against Teepy production accounts (`POST /api/theopy/authenticate`); inactive accounts and the `employee` role are rejected; no signup path exists in Theopy.
+
+ |
 
 ---
 
@@ -182,3 +200,5 @@ To validate the deployment, the architecture must strictly achieve the following
 | **SQL Context Leakage** | Zero
 
  |
+
+Measured 2026-07-23 (`coverage run -m pytest src/ -m "not ai"`, same scope as CI): **75%** on business logic (`--omit src/tests/*`), **89%** including test files. Core routing/auth/access-control modules (`app.py`, `auth.py`, `dispatcher.py`, `history_store.py`, `response_guard.py`, `role_access.py`) sit at 95-100%. The three modules below the 80% target (`gemini_client.py` 38%, `ollama_client.py` 22%, `mcp_client.py` 64%) are the external LLM/network integration clients whose `ai`-marked tests hit a real paid API and are intentionally excluded from this scope (see CI protocol above) — not an untested gap in business logic.
