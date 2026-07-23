@@ -7,6 +7,8 @@ import asyncio
 from functools import wraps
 
 import requests
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 from flask import (
     Flask,
     request,
@@ -25,6 +27,29 @@ from src import history_store
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+
+def _scrub_sentry_event(event, hint):
+    """Strip the /login password from request data before it leaves the
+    process, in case an unhandled exception fires mid-request. Defense in
+    depth on top of send_default_pii=False, not a substitute for it."""
+    request_data = event.get("request", {})
+    for field in ("data", "form"):
+        payload = request_data.get(field)
+        if isinstance(payload, dict) and "password" in payload:
+            payload["password"] = "[Filtered]"
+    return event
+
+
+# No-ops when SENTRY_DSN is unset (local dev, CI) - unlike GEMINI_API_KEY,
+# this isn't fail-fast because Sentry is observability, not a dependency
+# the app needs to function.
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    integrations=[FlaskIntegration()],
+    send_default_pii=False,
+    before_send=_scrub_sentry_event,
+)
 
 app = Flask(__name__)
 # Falls back to a fixed dev value so test/CI environments (no .env file) don't
