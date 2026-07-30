@@ -2,6 +2,7 @@ import os
 import logging
 from dotenv import load_dotenv
 
+from src import history_store
 from src.mcp_client import TeepyMCPClient
 
 load_dotenv()
@@ -48,6 +49,12 @@ class AgentDispatcher:
         try:
             logger.info("Processing user request...")
             final_answer = await self.brain.process_user_request(text)
+            try:
+                history_store.attach_final_answer(user_id, text, final_answer)
+            except Exception as e:
+                # Same convenience-side-effect guarantee as recording itself
+                # (see mcp_client.call_tool) - never break the real answer.
+                logger.warning(f"Failed to attach final answer to history: {e}")
             return final_answer
         finally:
             if hasattr(self, "mcp_client") and self.mcp_client:

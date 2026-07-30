@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const {
   matchesHistorySearch,
   selectHistoryEntries,
+  formatToolResultAsMarkdownTable,
 } = require("../src/static/js/history-logic.js");
 
 // --- matchesHistorySearch -------------------------------------------------
@@ -88,4 +89,85 @@ test("selectHistoryEntries: with a query, results are sorted most-recent-first",
 test("selectHistoryEntries: with a query that matches nothing, returns an empty array", () => {
   const result = selectHistoryEntries(SAMPLE_HISTORY, "Factures", "nonexistent");
   assert.deepEqual(result, []);
+});
+
+// --- formatToolResultAsMarkdownTable ---------------------------------------
+
+test("formatToolResultAsMarkdownTable: multi-row invoice list with a title line", () => {
+  const raw =
+    "Invoices List:\n" +
+    "Invoice ID: 100 | Pharmacy: Pharmacie de la Gare | Date: 2019-02-01 | Total: 276.00€ | Status: Paid\n" +
+    "Invoice ID: 105 | Pharmacy: Pharmacie de la Gare | Date: 2019-03-01 | Total: 312.00€ | Status: Unpaid";
+
+  const table = formatToolResultAsMarkdownTable(raw);
+
+  assert.equal(
+    table,
+    "| Invoice ID | Pharmacy | Date | Total | Status |\n" +
+      "| --- | --- | --- | --- | --- |\n" +
+      "| 100 | Pharmacie de la Gare | 2019-02-01 | 276.00€ | Paid |\n" +
+      "| 105 | Pharmacie de la Gare | 2019-03-01 | 312.00€ | Unpaid |"
+  );
+});
+
+test("formatToolResultAsMarkdownTable: a title glued onto the first field on the same line (reminders)", () => {
+  const raw =
+    "Reminders List: ID: 101 | Customer: Pharmacie de la Gare | Date: 2019-03-02 | " +
+    "Author: Mathieu Onésime | Status: Pending | Comment: à se souvenir une nouvelle fois";
+
+  const table = formatToolResultAsMarkdownTable(raw);
+
+  assert.equal(
+    table,
+    "| ID | Customer | Date | Author | Status | Comment |\n" +
+      "| --- | --- | --- | --- | --- | --- |\n" +
+      "| 101 | Pharmacie de la Gare | 2019-03-02 | Mathieu Onésime | Pending | à se souvenir une nouvelle fois |"
+  );
+});
+
+test("formatToolResultAsMarkdownTable: a title with a parenthetical glued onto the first field (planning)", () => {
+  const raw =
+    "Customer Dashboard Summary (5/2019): Customer: Pharmacie de la Gare | Freq: | " +
+    "Planned: 44h00 | Done: 11:40:23 | Charged: 16:00:00";
+
+  const table = formatToolResultAsMarkdownTable(raw);
+
+  assert.equal(
+    table,
+    "| Customer | Freq | Planned | Done | Charged |\n" +
+      "| --- | --- | --- | --- | --- |\n" +
+      "| Pharmacie de la Gare | — | 44h00 | 11:40:23 | 16:00:00 |"
+  );
+});
+
+test("formatToolResultAsMarkdownTable: drops a trailing row truncated to fewer columns, keeps the complete one", () => {
+  const raw =
+    "Invoices List:\n" +
+    "Invoice ID: 100 | Pharmacy: Pharmacie de la Gare | Date: 2019-02-01 | Total: 276.00€ | Status: Paid\n" +
+    "Invoice ID: 105 | Pharmacy: Pharmacie de la G";
+
+  const table = formatToolResultAsMarkdownTable(raw);
+
+  assert.equal(
+    table,
+    "| Invoice ID | Pharmacy | Date | Total | Status |\n" +
+      "| --- | --- | --- | --- | --- |\n" +
+      "| 100 | Pharmacie de la Gare | 2019-02-01 | 276.00€ | Paid |"
+  );
+});
+
+test("formatToolResultAsMarkdownTable: a plain non-tabular message returns null (no pipes at all)", () => {
+  assert.equal(
+    formatToolResultAsMarkdownTable("Success: Invoice 101 has been marked as Paid."),
+    null
+  );
+  assert.equal(
+    formatToolResultAsMarkdownTable("No sessions found for this criteria."),
+    null
+  );
+});
+
+test("formatToolResultAsMarkdownTable: null/empty input returns null", () => {
+  assert.equal(formatToolResultAsMarkdownTable(null), null);
+  assert.equal(formatToolResultAsMarkdownTable(""), null);
 });

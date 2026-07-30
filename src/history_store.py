@@ -65,6 +65,10 @@ def _connect() -> sqlite3.Connection:
         conn.execute("ALTER TABLE history ADD COLUMN user_id INTEGER")
     except sqlite3.OperationalError:
         pass  # Column already exists - safe to ignore (idempotent migration).
+    try:
+        conn.execute("ALTER TABLE history ADD COLUMN full_answer TEXT")
+    except sqlite3.OperationalError:
+        pass  # Column already exists - safe to ignore (idempotent migration).
     conn.commit()
     return conn
 
@@ -120,7 +124,7 @@ def get_grouped(user_id: int) -> dict:
     with _LOCK:
         _prune_locked()
         rows = _conn.execute(
-            "SELECT id, domain, tool_name, arguments, summary, timestamp, question "
+            "SELECT id, domain, tool_name, arguments, summary, timestamp, question, full_answer "
             "FROM history WHERE user_id = ? ORDER BY id DESC",
             (user_id,),
         ).fetchall()
@@ -134,6 +138,7 @@ def get_grouped(user_id: int) -> dict:
         summary,
         timestamp,
         question,
+        full_answer,
     ) in rows:
         grouped.setdefault(domain, []).append(
             {
@@ -144,9 +149,36 @@ def get_grouped(user_id: int) -> dict:
                 "summary": summary,
                 "timestamp": timestamp,
                 "question": question,
+                "full_answer": full_answer,
             }
         )
     return grouped
+
+
+FINAL_ANSWER_ATTACH_WINDOW_SECONDS = 30
+
+
+def attach_final_answer(user_id: int, question: str, full_answer: str) -> None:
+    """Attach the guarded, LLM-synthesized answer actually shown to the user
+    to the row(s) this turn just recorded (one per tool call it made), so
+    recalling from history renders the same Markdown table as the live
+    answer instead of the raw pre-synthesis tool text stored in `summary`.
+
+    Scoped to a short recent window and keyed on (user_id, question) so it
+    can never touch an older, identical question asked earlier within the
+    same 24h retention period. Best-effort and silent: if the turn made no
+    tool calls (nothing recorded to attach to), this is a no-op - history
+    is a convenience side-effect, not the source of truth for the answer."""
+    if not question:
+        return
+    cutoff = time.time() - FINAL_ANSWER_ATTACH_WINDOW_SECONDS
+    with _LOCK:
+        _conn.execute(
+            "UPDATE history SET full_answer = ? "
+            "WHERE user_id = ? AND question = ? AND full_answer IS NULL AND timestamp >= ?",
+            (full_answer, user_id, question, cutoff),
+        )
+        _conn.commit()
 
 
 def clear() -> None:

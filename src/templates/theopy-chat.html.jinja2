@@ -286,7 +286,17 @@
             aBubble.appendChild(aHeader);
 
             const aBody = document.createElement('div');
-            aBody.innerHTML = marked.parse(entry.summary);
+            // full_answer is the guarded, LLM-synthesized text actually shown
+            // live (already proper Markdown) - use it as-is when present.
+            // Otherwise (rows recorded before full_answer existed, or where
+            // attaching it failed) reconstruct a table from the raw tool
+            // text so it still renders with the same table UX instead of a
+            // flat wall of pipes. formatToolResultAsMarkdownTable comes from
+            // static/js/history-logic.js - see /frontend-tests for its tests.
+            const displayText = entry.full_answer
+                || formatToolResultAsMarkdownTable(entry.summary)
+                || entry.summary;
+            aBody.innerHTML = marked.parse(displayText);
             aBubble.appendChild(aBody);
 
             aWrapper.appendChild(aBubble);

@@ -155,3 +155,76 @@ def test_get_grouped_excludes_entries_recorded_without_a_user_id():
     grouped = history_store.get_grouped(USER_A)
 
     assert grouped == {}
+
+
+def test_attach_final_answer_updates_the_matching_recent_row():
+    history_store.record(
+        "fetch_all_invoices_list",
+        {},
+        "Invoices List: Invoice ID: 100 | ...",
+        question="show me the invoices",
+        user_id=USER_A,
+    )
+
+    history_store.attach_final_answer(
+        USER_A, "show me the invoices", "| ID | Total |\n|---|---|\n| 100 | 276€ |"
+    )
+
+    grouped = history_store.get_grouped(USER_A)
+    assert grouped["Factures"][0]["full_answer"] == (
+        "| ID | Total |\n|---|---|\n| 100 | 276€ |"
+    )
+    # The raw, pre-synthesis preview stays untouched.
+    assert grouped["Factures"][0]["summary"] == "Invoices List: Invoice ID: 100 | ..."
+
+
+def test_attach_final_answer_does_not_touch_another_users_row():
+    history_store.record(
+        "fetch_all_invoices_list",
+        {},
+        "user A's invoices",
+        question="show me the invoices",
+        user_id=USER_A,
+    )
+    history_store.record(
+        "fetch_all_invoices_list",
+        {},
+        "user B's invoices",
+        question="show me the invoices",
+        user_id=USER_B,
+    )
+
+    history_store.attach_final_answer(USER_A, "show me the invoices", "A's table")
+
+    assert (
+        history_store.get_grouped(USER_A)["Factures"][0]["full_answer"] == "A's table"
+    )
+    assert history_store.get_grouped(USER_B)["Factures"][0]["full_answer"] is None
+
+
+def test_attach_final_answer_ignores_rows_outside_the_recent_window(monkeypatch):
+    fake_now = [1_000_000.0]
+    monkeypatch.setattr(history_store.time, "time", lambda: fake_now[0])
+
+    history_store.record(
+        "fetch_all_invoices_list",
+        {},
+        "stale row",
+        question="show me the invoices",
+        user_id=USER_A,
+    )
+
+    fake_now[0] += history_store.FINAL_ANSWER_ATTACH_WINDOW_SECONDS + 1
+    history_store.attach_final_answer(USER_A, "show me the invoices", "too late")
+
+    assert history_store.get_grouped(USER_A)["Factures"][0]["full_answer"] is None
+
+
+def test_attach_final_answer_is_a_noop_without_a_question():
+    history_store.record(
+        "fetch_all_invoices_list", {}, "no question recorded", user_id=USER_A
+    )
+
+    history_store.attach_final_answer(USER_A, None, "should not be attached")
+
+    assert history_store.get_grouped(USER_A)["Factures"][0]["full_answer"] is None
