@@ -27,15 +27,20 @@ body {
   border-radius: 20px 20px 20px 4px;
   padding: 1rem 1.5rem;
   /* --- INJECTED MARKDOWN TABLE STYLES --- */
+  /* display: block + overflow-x: auto makes wide tables (4+ columns)
+     horizontally scrollable inside the fixed-width bubble instead of
+     being squeezed/clipped by overflow: hidden. */
   /* Fix margins for markdown paragraphs */
   /* Make sure bold text uses the Kozea token */ }
   .ai-bubble table {
+    display: block;
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
     border-collapse: collapse;
     margin: 1.25rem 0;
     font-size: 0.85rem;
     border-radius: 8px;
-    overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
   .ai-bubble th, .ai-bubble td {
     padding: 0.75rem 1rem;
