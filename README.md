@@ -4,7 +4,11 @@ Theopy is an AI-powered assistant project utilizing Gemini, built by [Kozea](htt
 
 Teepy's repository is private. A sanitized extract of my MCP/authentication contribution to Teepy - real file structure, only my own code kept - is public here: **[teepy-mcp-contribution](https://github.com/SajedehAdelia/teepy-mcp-contribution)**.
 
-**Note on running this locally:** Theopy needs a running instance of Teepy to talk to (see "Local Setup" below). Since Teepy is Kozea's private, proprietary codebase, you likely won't be able to clone and run it yourself unless you already have access. To see the full system working end-to-end regardless, a short demo video is included: **[demo video link here](https://github.com/user-attachments/assets/e5447e51-3439-4ceb-9a4a-a739d0483431)**.
+**Note on running this locally:** Theopy needs a running instance of Teepy to talk to (see "Local Setup" below). Since Teepy is Kozea's private, proprietary codebase, you likely won't be able to clone and run it yourself unless you already have access. To see the full system working end-to-end regardless, two short demo videos are included: 
+
+1- **[demo video server communication](https://github.com/user-attachments/assets/e5447e51-3439-4ceb-9a4a-a739d0483431)**
+
+2- **[demo video interface](https://github.com/user-attachments/assets/57b24027-d2a3-460e-8c37-c7be981a9bf3)**
 
 This guide will help you set up your local development environment and run the system using Docker.
 
