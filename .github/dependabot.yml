@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # Maintain Python dependencies (requirements.txt at repo root)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "maintenance"
+    # Mirrors the human update discipline already used on Teepy:
+    # minor/patch bumps are batched into one PR (reviewed and merged together
+    # if nothing breaks), while major bumps stay isolated one-per-PR so a
+    # breaking change can be held back or fixed without blocking the rest.
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Keep the GitHub Actions workflow files themselves up to date too
+  # (actions/checkout, actions/setup-python, etc.)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "maintenance"
