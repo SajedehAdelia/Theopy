@@ -41,9 +41,6 @@ def _scrub_sentry_event(event, hint):
     return event
 
 
-# No-ops when SENTRY_DSN is unset (local dev, CI) - unlike GEMINI_API_KEY,
-# this isn't fail-fast because Sentry is observability, not a dependency
-# the app needs to function.
 sentry_sdk.init(
     dsn=os.getenv("SENTRY_DSN"),
     integrations=[FlaskIntegration()],
@@ -52,10 +49,8 @@ sentry_sdk.init(
 )
 
 app = Flask(__name__)
-# Falls back to a fixed dev value so test/CI environments (no .env file) don't
-# fail at import time - real deployments set SECRET_KEY via .env. Session
-# forgery isn't the primary defense boundary here anyway: every MCP tool call
-# is re-authorized against Teepy's own database on the server side.
+# Every MCP tool call is logged in a local SQLite database, so the Theopy webapp can show each
+#  database on the server side.
 app.secret_key = os.getenv("SECRET_KEY", "dev-insecure-default-change-in-production")
 
 # One AgentDispatcher per logged-in Teepy user_id, not a single shared
