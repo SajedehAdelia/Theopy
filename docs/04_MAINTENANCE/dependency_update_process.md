@@ -38,6 +38,6 @@ Two update paths coexist:
 
 Each monthly Dependabot batch is reviewed manually before merge, following the same decision rule used on Teepy: CI (lint + full test matrix) is the gate. If a bump passes, it merges — minor/patch bumps together, majors individually. If a bump breaks CI, that specific update is held back (the PR stays open, un-merged) rather than merged and fixed reactively — the rest of the batch is unaffected since majors and minor/patch groups are already isolated from each other.
 
-## 4. Safety net
+## 5. Safety net
 
 Because `make upgrade` re-lints and CI re-runs the full test suite on every push regardless of what changed, a dependency update that introduces a regression is caught the same way any other code regression would be — there is no separate/weaker validation path for dependency changes versus feature changes.

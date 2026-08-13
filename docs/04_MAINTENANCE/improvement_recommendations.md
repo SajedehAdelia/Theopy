@@ -33,3 +33,21 @@ Recommendations below are derived from the KPI table in [`risk_mapping.md`](../0
 **Observation.** Prior to this analysis, all 19 pinned dependencies were updated manually, triggered either by new feature needs or occasional proactive compatibility passes (e.g. the Flask/Werkzeug bump for Python 3.11) — nothing surfaced outdated or vulnerable packages on its own.
 
 **Action taken.** Added [`.github/dependabot.yml`](../../.github/dependabot.yml), scoped to `requirements.txt` and to the GitHub Actions workflow files, checking monthly. Update PRs are grouped by risk (minor/patch bundled, majors isolated) to mirror the review discipline already used in production on Teepy — see [`dependency_update_process.md`](dependency_update_process.md) §3–4 for the full merge policy. This closes the original gap (security patches depending on someone noticing them) while keeping the human review/hold-back decision that the batching model relies on.
+
+## 4. Automate deployment (CD) via a self-hosted runner — planned, not yet implemented
+
+**Observation.** Per [`dependency_update_process.md`](dependency_update_process.md) and the deployment note in [`incident_taskgroup_teardown.md`](incident_taskgroup_teardown.md) §5, Theopy is currently deployed manually: `make upgrade` is run by hand on each tiers-payant workstation that uses it day to day. This is real deployment to real users, but it depends on someone remembering to run it after every merge.
+
+**Design.** The next step is a self-hosted GitHub Actions runner installed directly on the machine(s) running Theopy, avoiding any need to expose SSH or open ports to the internet — the runner dials out to GitHub rather than being dialed into. Concretely:
+1. Install and register the GitHub Actions runner agent on the target machine (`./config.sh`, using a registration token from the repo's Settings → Actions → Runners), labeled `self-hosted`.
+2. Add a `deploy` job to a new `.github/workflows/cd.yml`, triggered `on: push: branches: [main]`, gated with `needs: build` so it only runs once the existing CI job (lint + tests) is green.
+3. That job runs on the target machine itself: `git pull`, `docker compose build`, `docker compose up -d` — the same sequence `make upgrade` already performs by hand.
+4. A final `curl -f http://localhost:8000/health` step confirms the new container came up healthy; a failure here fails the job and triggers the same notification path already relied on for CI failures.
+
+**Why this option over the alternatives.** An SSH-based deploy step would need the machine reachable from GitHub's cloud runners (a VPN or port-forward), which isn't available on a workstation sitting on Kozea's internal network. A registry-plus-auto-updater approach (e.g. Watchtower) would remove the CI-as-gate checkpoint entirely, updating on a timer rather than only after tests pass — inconsistent with the hold-if-broken discipline already used for dependency updates (§1 above) and on Teepy in production.
+
+**Status — deliberately not yet implemented, for a specific security reason.** GitHub itself warns against self-hosted runners on public repositories:
+
+> "Using self-hosted runners in public repositories is not recommended. Forks of your public repository can potentially run dangerous code on your self-hosted runner by creating a pull request."
+
+Theopy's repository is currently public so the RNCP jury can review the code. A self-hosted runner on a public repo would let anyone open a pull request from a fork and execute arbitrary code on whichever machine the runner is installed on — an unacceptable risk on a workstation used in production. The correct sequencing is: keep the repository public through the certification review, then set the repository to private and implement the self-hosted runner described above, once the fork-PR attack surface no longer applies. This is not a missing step so much as a step correctly held until its precondition (a private repository) is met.
