@@ -1,12 +1,11 @@
-```yaml
+---
 title: "TECHNICAL RISK MAPPING AND INCIDENT MONITORING"
 project: "Theopy – AI Assistant MCP Server"
 author: "Adelia Fathipoursasansara"
 organisation: "Kozea"
 period: "2026"
 certificate: "RNCP39583 – Expert in Software Development"
-
-```
+---
 
 # Technical Risk Mapping and Incident Monitoring
 
@@ -35,57 +34,13 @@ Based on the architectural audit, the following specific risks have been identif
 
 | **Risk** | **Description** | **Probability** | **Impact** | **Mitigation Measures** |
 | --- | --- | --- | --- | --- |
-| **Infrastructure: Port Conflicts** | Network port conflicts between different local containers.
-
- | 🔴 High
-
- | 🔵 Low
-
- | Strict mapping via Docker and creation of an isolated network bridge for inter-container communication.
-
- |
-| **Network: SSE Disconnection** | The Server-Sent Events (SSE) asynchronous stream drops during long LLM inference or inactivity. | 🔴 High
-
- | 🟡 Medium
-
- | Implement robust client-side reconnection logic and proper `AsyncExitStack` teardowns in `dispatcher.py`. |
-| **AI Hallucination** | The LLM misinterprets the prompt and generates a malformed tool call or hallucinates financial data.
-
- | 🔴 High
-
- | 🔴 High
-
- | Force strict Function Calling (JSON routing) via the Google Gemini SDK. Ensure zero direct SQL access for the AI.
-
- |
-| **Vendor Lock-in (Dependency)** | Being trapped with a single AI provider, making it difficult to switch if pricing or APIs change.
-
- | 🟡 Medium | 🟡 Medium | Keep all business intelligence in Teepy. Theopy acts strictly as an interchangeable router.
-
- |
-| **Security: Credential Leak** | Leakage of API keys or database credentials leading to unauthorized access.
-
- | 🔵 Low
-
- | 🔴 High
-
- | Dynamic environment injection (`.env`). Theopy and Teepy will refuse to start if keys are missing (Fail-Fast).
-
- |
-| **External: Google SSL Updates** | Sudden changes to Google API SSL certificates breaking the SDK connection. | 🔵 Low
-
- | 🔵 Low
-
- | Lock SDK versions via `requirements.txt` and monitor Google Cloud developer announcements.
-
- |
-| **Security: Role/Identity Desync** | Theopy's client-side role map (`src/role_access.py`) drifts out of sync with Teepy's server-side `requires_role()` tool list, showing a tool that gets denied or hiding one that would have been allowed. | 🟡 Medium
-
- | 🔵 Low
-
- | Documented as a UX layer only, never a security boundary — Teepy's server-side `requires_role()` re-check remains the sole authority regardless of client-side drift.
-
- |
+| **Infrastructure: Port Conflicts** | Network port conflicts between different local containers. | 🔴 High | 🔵 Low | Strict mapping via Docker and creation of an isolated network bridge for inter-container communication. |
+| **Network: SSE Disconnection** | The Server-Sent Events (SSE) asynchronous stream drops during long LLM inference or inactivity. | 🔴 High | 🟡 Medium | Implement robust client-side reconnection logic and proper `AsyncExitStack` teardowns in `dispatcher.py`. |
+| **AI Hallucination** | The LLM misinterprets the prompt and generates a malformed tool call or hallucinates financial data. | 🔴 High | 🔴 High | Force strict Function Calling (JSON routing) via the Google Gemini SDK. Ensure zero direct SQL access for the AI. |
+| **Vendor Lock-in (Dependency)** | Being trapped with a single AI provider, making it difficult to switch if pricing or APIs change. | 🟡 Medium | 🟡 Medium | Keep all business intelligence in Teepy. Theopy acts strictly as an interchangeable router. |
+| **Security: Credential Leak** | Leakage of API keys or database credentials leading to unauthorized access. | 🔵 Low | 🔴 High | Dynamic environment injection (`.env`). Theopy and Teepy will refuse to start if keys are missing (Fail-Fast). |
+| **External: Google SSL Updates** | Sudden changes to Google API SSL certificates breaking the SDK connection. | 🔵 Low | 🔵 Low | Lock SDK versions via `requirements.txt` and monitor Google Cloud developer announcements. |
+| **Security: Role/Identity Desync** | Theopy's client-side role map (`src/role_access.py`) drifts out of sync with Teepy's server-side `requires_role()` tool list, showing a tool that gets denied or hiding one that would have been allowed. | 🟡 Medium | 🔵 Low | Documented as a UX layer only, never a security boundary — Teepy's server-side `requires_role()` re-check remains the sole authority regardless of client-side drift. |
 
 ---
 
@@ -95,26 +50,10 @@ To validate the architecture, these specific indicators are monitored:
 
 | **Category** | **Monitoring Indicator** | **Tool / Method** | **Alert Threshold / Target** |
 | --- | --- | --- | --- |
-| **AI Performance** | AI Response Time
-
- | Flask logs / Sentry | > 4 seconds
-
- |
-| **Routing Quality** | Routing Accuracy (Function Calling)
-
- | Testing Suite / Logs | < 95% accuracy
-
- |
-| **Software Integrity** | Unit Test Coverage
-
- | Pytest / CI Pipeline | < 80% coverage (measured 2026-07-23: 75% business logic / 89% incl. test files — see `System_Architecture.md` for the per-module breakdown)
-
- |
-| **Security** | SQL Context Leakage
-
- | SQLAlchemy Logs / IDS | Any leakage detected (Target: Zero)
-
- |
+| **AI Performance** | AI Response Time | Flask logs / Sentry | > 4 seconds |
+| **Routing Quality** | Routing Accuracy (Function Calling) | Testing Suite / Logs | < 95% accuracy |
+| **Software Integrity** | Unit Test Coverage | Pytest / CI Pipeline | < 80% coverage (measured 2026-07-23: 75% business logic / 89% incl. test files — see `System_Architecture.md` for the per-module breakdown) |
+| **Security** | SQL Context Leakage | SQLAlchemy Logs / IDS | Any leakage detected (Target: Zero) |
 | **System Stability** | Exception count | `sentry-sdk[flask]` | > 5 unhandled exceptions/hour |
 | **Network** | SSE Connection Drops | Nginx / Docker logs | > 10 drops per session |
 
@@ -136,11 +75,8 @@ To validate the architecture, these specific indicators are monitored:
 
 * **Fail-Fast Initialization:** Maintain strict `.env` validation on startup to prevent insecure boots.
 
-
 * **Network Isolation:** Never expose the MCP ports publicly; rely exclusively on the Docker internal bridge for Teepy-Theopy communication.
 
-
 * **LLM Agnosticism:** Ensure all new tools added to Teepy follow standard MCP schemas so the LLM engine can be swapped without code refactoring.
-
 
 * **Error Tracking:** Rely on `sentry-sdk` to automatically catch asynchronous `TaskGroup` crashes and SSE timeout errors.
